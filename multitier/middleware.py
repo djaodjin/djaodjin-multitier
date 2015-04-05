@@ -26,12 +26,11 @@
 import logging, re, os, sys
 import gettext as gettext_module
 
+from django.conf import settings
 from django.db import connections
 from django.db.models import Q
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.conf import settings
 from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.utils.translation.trans_real import _active
 from django.utils._os import upath
 
@@ -97,7 +96,7 @@ class SiteMiddleware(object):
                 | Q(slug=candidate) | Q(slug=settings.APP_NAME)
             ).order_by('-pk')
             if not queryset.exists():
-                raise Site.DoesNotExist
+                raise Site.DoesNotExist #pylint: disable=raising-bad-type
             site = queryset.first()
             if site and site.slug != path_prefix:
                 path_prefix = ''
