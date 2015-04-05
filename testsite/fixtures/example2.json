@@ -1,0 +1,16 @@
+[
+{
+    "fields": {
+      "date_joined": "2015-01-01T00:00:00-00:00",
+      "first_name": "Donny",
+      "last_name": "Example2",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "last_login": "2015-01-01T00:00:00-00:00",
+      "password": "pbkdf2_sha256$10000$z0MBiWn0Rlem$iZdC6uHomlE07qGK/TqfcfxNzKJtFp03c0JILF1frRc=", 
+      "username": "donny"
+    },
+    "model": "auth.User", "pk": 1
+}
+]

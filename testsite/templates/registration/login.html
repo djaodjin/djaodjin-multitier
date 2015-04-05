@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="post" action=".{% if next %}/?next={{next}}{% endif %}">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Login" />
+</form>
+{% endblock %}
