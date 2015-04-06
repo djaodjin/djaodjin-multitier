@@ -31,8 +31,7 @@ setup(
     version=pages.__version__,
     author='DjaoDjin inc.',
     author_email='support@djaodjin.com',
-    packages=[
-        'multitier',]
+    packages=['multitier'],
     license='BSD',
     description='Multi-tier Django app',
 )
