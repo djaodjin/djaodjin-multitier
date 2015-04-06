@@ -28,7 +28,7 @@ import multitier
 
 setup(
     name='djaodjin-multitier',
-    version=pages.__version__,
+    version=multitier.__version__,
     author='DjaoDjin inc.',
     author_email='support@djaodjin.com',
     packages=['multitier'],
