@@ -2,7 +2,7 @@ djaodjin-multitier is a Django application that implements shared tenancy.
 
 Major Features:
 
-  - Databases connections: Dynamiclly created based on subdomain or path prefix
+  - Databases connections: Dynamically created based on subdomain or path prefix
   - Templates: Selected based on subdomain or path prefix
   - URL resolvers: Dynamic path prefix (as a hack in i18n module)
 
