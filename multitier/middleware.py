@@ -76,10 +76,15 @@ class SiteMiddleware(object):
         path_prefix = ''
         host = request.get_host().split(':')[0].lower()
         if len(settings.ALLOWED_HOSTS) > 0:
-            look = re.match(r'^((?P<subdomain>\S+)\.)?%s(?::.*)?$'
-                            % settings.ALLOWED_HOSTS[0], host)
+            domain = settings.ALLOWED_HOSTS[0]
+            if domain.startswith('.'):
+                domain = domain[1:]
+            look = re.match(r'^((?P<subdomain>\S+)\.)?%s(?::.*)?$' % domain,
+                host)
             if look and look.group('subdomain'):
                 candidate = look.group('subdomain')
+                LOGGER.debug("multitier: found subdomain candidate: %s",
+                    candidate)
         if not candidate:
             # It is either a subdomain or a path_prefix. Trying both
             # match one after the other will always override the candidate.
@@ -89,6 +94,8 @@ class SiteMiddleware(object):
             if look:
                 path_prefix = look.group('path_prefix')
                 candidate = path_prefix
+                LOGGER.debug("multitier: found path_prefix candidate: %s",
+                    candidate)
             else:
                 candidate = settings.APP_NAME
         try:
@@ -103,6 +110,8 @@ class SiteMiddleware(object):
         except Site.DoesNotExist:
             raise Http404(
                 "%s nor %s could be found." % (host, settings.APP_NAME))
+        LOGGER.debug("multitier: access site %s with prefix '%s'",
+            site, path_prefix)
         return site, path_prefix
 
 
