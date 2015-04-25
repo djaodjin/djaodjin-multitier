@@ -57,7 +57,9 @@ def as_provider_db(db_name):
                 os.path.dirname(default_db_name), db_name + '.sqlite3')]:
             if os.path.exists(candidate_db):
                 provider_db['NAME'] = candidate_db
-                break
+                LOGGER.debug("multitier: using database '%s'", candidate_db)
+                return provider_db
+    LOGGER.error("multitier: cannot find db '%s'", db_name)
     return provider_db
 
 
@@ -94,7 +96,7 @@ class SiteMiddleware(object):
             if look:
                 path_prefix = look.group('path_prefix')
                 candidate = path_prefix
-                LOGGER.debug("multitier: found path_prefix candidate: %s",
+                LOGGER.debug("multitier: found path_prefix candidate: '%s'",
                     candidate)
             else:
                 candidate = settings.APP_NAME
@@ -110,7 +112,7 @@ class SiteMiddleware(object):
         except Site.DoesNotExist:
             raise Http404(
                 "%s nor %s could be found." % (host, settings.APP_NAME))
-        LOGGER.debug("multitier: access site %s with prefix '%s'",
+        LOGGER.debug("multitier: access site '%s' with prefix '%s'",
             site, path_prefix)
         return site, path_prefix
 
