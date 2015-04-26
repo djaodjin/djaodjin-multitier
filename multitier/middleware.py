@@ -59,7 +59,7 @@ def as_provider_db(db_name):
                 provider_db['NAME'] = candidate_db
                 LOGGER.debug("multitier: using database '%s'", candidate_db)
                 return provider_db
-    LOGGER.error("multitier: cannot find db '%s'", db_name)
+        LOGGER.error("multitier: cannot find db '%s'", db_name)
     return provider_db
 
 
@@ -87,14 +87,14 @@ class SiteMiddleware(object):
                 candidate = look.group('subdomain')
 #                LOGGER.debug("multitier: found subdomain candidate: %s",
 #                    candidate)
+        look = re.match(r'^/(?P<path_prefix>[a-zA-Z0-9\-]+).*', request.path)
+        # no trailing '/' is OK here.
+        if look:
+            path_prefix = look.group('path_prefix')
         if not candidate:
             # It is either a subdomain or a path_prefix. Trying both
             # match one after the other will always override the candidate.
-            look = re.match(
-                r'^/(?P<path_prefix>[a-zA-Z0-9\-]+).*', request.path)
-            # no trailing '/' is OK here.
-            if look:
-                path_prefix = look.group('path_prefix')
+            if path_prefix:
                 candidate = path_prefix
 #                LOGGER.debug("multitier: found path_prefix candidate: '%s'",
 #                    candidate)
