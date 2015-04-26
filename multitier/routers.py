@@ -22,6 +22,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from django.conf import settings as django_settings
 from django.db import DEFAULT_DB_ALIAS
 
 from .locals import get_current_site
@@ -40,6 +41,11 @@ class SiteRouter(object):
 
     @staticmethod
     def provider_db():
+        if hasattr(django_settings, 'MULTITIER_NAME'):
+            # ``manage.py loaddata`` will call db_for_write for relation
+            # tables. Since we don't have a ``request`` then, we rely
+            # on an environment variable.
+            return django_settings.MULTITIER_NAME
         current_site = get_current_site()
         if current_site:
             return current_site.db_name

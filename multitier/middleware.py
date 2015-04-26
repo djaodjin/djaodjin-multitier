@@ -85,8 +85,8 @@ class SiteMiddleware(object):
                 host)
             if look and look.group('subdomain'):
                 candidate = look.group('subdomain')
-                LOGGER.debug("multitier: found subdomain candidate: %s",
-                    candidate)
+#                LOGGER.debug("multitier: found subdomain candidate: %s",
+#                    candidate)
         if not candidate:
             # It is either a subdomain or a path_prefix. Trying both
             # match one after the other will always override the candidate.
@@ -96,8 +96,8 @@ class SiteMiddleware(object):
             if look:
                 path_prefix = look.group('path_prefix')
                 candidate = path_prefix
-                LOGGER.debug("multitier: found path_prefix candidate: '%s'",
-                    candidate)
+#                LOGGER.debug("multitier: found path_prefix candidate: '%s'",
+#                    candidate)
             else:
                 candidate = settings.APP_NAME
         try:
