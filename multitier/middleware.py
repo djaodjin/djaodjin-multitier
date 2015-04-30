@@ -26,7 +26,7 @@
 import logging, re, os, sys
 import gettext as gettext_module
 
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.db import connections
 from django.db.models import Q
 from django.db.utils import DEFAULT_DB_ALIAS
@@ -34,6 +34,7 @@ from django.http import Http404
 from django.utils.translation.trans_real import _active
 from django.utils._os import upath
 
+from . import settings, get_site_model
 from .models import Site
 from .locals import clear_cache, set_current_site
 from .urlresolvers import SiteCode
@@ -50,11 +51,11 @@ def as_provider_db(db_name):
     default_db_name = provider_db['NAME']
     provider_db.update({'NAME':db_name})
     if provider_db['ENGINE'].endswith('sqlite3'):
-        # HACK to set absolute paths.
-        for candidate_db in [
-            default_db_name.replace(settings.APP_NAME, db_name),
-            os.path.join(
-                os.path.dirname(default_db_name), db_name + '.sqlite3')]:
+        # HACK to set absolute paths (used in development environments)
+        candidates = [os.path.join(dir_path, db_name + '.sqlite3')
+            for dir_path in [os.path.dirname(default_db_name)]
+                       + settings.DEBUG_SQLITE3_PATHS]
+        for candidate_db in candidates:
             if os.path.exists(candidate_db):
                 provider_db['NAME'] = candidate_db
                 LOGGER.debug("multitier: using database '%s'", candidate_db)
@@ -77,8 +78,8 @@ class SiteMiddleware(object):
         candidate = None
         path_prefix = ''
         host = request.get_host().split(':')[0].lower()
-        if len(settings.ALLOWED_HOSTS) > 0:
-            domain = settings.ALLOWED_HOSTS[0]
+        if len(django_settings.ALLOWED_HOSTS) > 0:
+            domain = django_settings.ALLOWED_HOSTS[0]
             if domain.startswith('.'):
                 domain = domain[1:]
             look = re.match(r'^((?P<subdomain>\S+)\.)?%s(?::.*)?$' % domain,
@@ -99,10 +100,10 @@ class SiteMiddleware(object):
 #                LOGGER.debug("multitier: found path_prefix candidate: '%s'",
 #                    candidate)
             else:
-                candidate = settings.APP_NAME
+                candidate = django_settings.APP_NAME
         try:
-            queryset = Site.objects.filter(Q(domain=host)
-                | Q(slug=candidate) | Q(slug=settings.APP_NAME)
+            queryset = get_site_model().objects.filter(Q(domain=host)
+                | Q(slug=candidate) | Q(slug=django_settings.APP_NAME)
             ).order_by('-pk')
             if not queryset.exists():
                 raise Site.DoesNotExist #pylint: disable=raising-bad-type
@@ -111,7 +112,7 @@ class SiteMiddleware(object):
                 path_prefix = ''
         except Site.DoesNotExist:
             raise Http404(
-                "%s nor %s could be found." % (host, settings.APP_NAME))
+                "%s nor %s could be found." % (host, django_settings.APP_NAME))
         LOGGER.debug("multitier: access site '%s' with prefix '%s'",
             site, path_prefix)
         return site, path_prefix
@@ -141,7 +142,8 @@ class SiteMiddleware(object):
         # with regards to the active site.
         set_current_site(site, path_prefix)
         globalpath = os.path.join(os.path.dirname(
-                upath(sys.modules[settings.__module__].__file__)), 'locale')
+                upath(sys.modules[django_settings.__module__].__file__)),
+                'locale')
         _active.value = gettext_module.translation(
             'django', globalpath, class_=SiteCode)
         return None

@@ -33,6 +33,7 @@ _SETTINGS = {
     'ACCOUNT_MODEL': settings.AUTH_USER_MODEL,
     'ROUTER_APPS': ('auth', 'sessions', 'contenttypes'),
     'ROUTER_TABLES': [],
+    'DEBUG_SQLITE3_PATHS': []
 }
 _SETTINGS.update(getattr(settings, 'MULTITIER', {}))
 
@@ -40,4 +41,4 @@ _SETTINGS.update(getattr(settings, 'MULTITIER', {}))
 ACCOUNT_MODEL = _SETTINGS.get('ACCOUNT_MODEL')
 ROUTER_APPS = _SETTINGS.get('ROUTER_APPS')
 ROUTER_TABLES = _SETTINGS.get('ROUTER_TABLES')
-
+DEBUG_SQLITE3_PATHS = _SETTINGS.get('DEBUG_SQLITE3_PATHS')

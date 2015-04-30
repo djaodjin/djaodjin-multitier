@@ -52,14 +52,24 @@ def domain_name_validator(value):
 
 class Site(models.Model):
 
-    domain = models.CharField('fully qualified domain name', max_length=100,
+    domain = models.CharField(null=True, max_length=100,
+        help_text='fully qualified domain name',
         validators=[domain_name_validator])
     slug = models.SlugField(unique=True,
         help_text="unique subdomain of root site")
-    db_name = models.CharField(max_length=255,
+    db_name = models.CharField(max_length=255, null=True,
        help_text='name of database used for authentication')
     account = models.ForeignKey(
         settings.ACCOUNT_MODEL, related_name='sites', null=True)
 
+    class Meta:
+        swappable = 'MULTITIER_SITE_MODEL'
+
     def __unicode__(self): #pylint: disable=super-on-old-class
         return unicode(self.slug)
+
+    def get_templates(self):
+        """
+        Returns a list of candidate search paths for templates.
+        """
+        return (self.slug,)

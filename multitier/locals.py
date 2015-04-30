@@ -51,17 +51,6 @@ def clear_cache():
         pass
 
 
-def get_custom_templates():
-    """
-    Returns a ``Site`` if the template loader should use custom templates
-    for the view associated with the request processed by this thread.
-    """
-    current_site = get_current_site()
-    if current_site:
-        return (current_site.slug,)
-    return []
-
-
 def get_current_site():
     """
     Returns the ``Site`` associated to the thread request.

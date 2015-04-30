@@ -28,7 +28,7 @@ from django.conf import settings
 from django.template.loaders.filesystem import Loader as FilesystemLoader
 from django.utils._os import safe_join
 
-from .locals import get_custom_templates
+from .locals import get_current_site
 
 LOGGER = logging.getLogger(__name__)
 
@@ -38,7 +38,11 @@ class Loader(FilesystemLoader):
         try:
             if not template_dirs:
                 template_dirs = settings.TEMPLATE_DIRS
-            for theme in get_custom_templates():
+            themes = []
+            current_site = get_current_site()
+            if current_site:
+                themes = current_site.get_templates()
+            for theme in themes:
                 for template_dir in template_dirs:
                     try:
                         template_path = safe_join(
