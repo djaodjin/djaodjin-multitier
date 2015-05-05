@@ -58,7 +58,13 @@ class Site(models.Model):
     slug = models.SlugField(unique=True,
         help_text="unique subdomain of root site")
     db_name = models.CharField(max_length=255, null=True,
-       help_text='name of database used for authentication')
+       help_text='name of database to connect to for the site')
+    db_host = models.CharField(max_length=255, null=True,
+       help_text='host to connect to to access the database')
+    db_port = models.IntegerField(null=True,
+       help_text='port to connect to to access the database')
+    theme = models.CharField(max_length=255, null=True,
+       help_text='alternative search name for finding templates')
     account = models.ForeignKey(
         settings.ACCOUNT_MODEL, related_name='sites', null=True)
 
@@ -68,8 +74,14 @@ class Site(models.Model):
     def __unicode__(self): #pylint: disable=super-on-old-class
         return unicode(self.slug)
 
+    @property
+    def printable_name(self):
+        return self.slug
+
     def get_templates(self):
         """
         Returns a list of candidate search paths for templates.
         """
+        if self.theme:
+            return (self.theme, self.slug)
         return (self.slug,)

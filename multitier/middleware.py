@@ -52,7 +52,7 @@ def as_provider_db(db_name):
     provider_db.update({'NAME':db_name})
     if provider_db['ENGINE'].endswith('sqlite3'):
         # HACK to set absolute paths (used in development environments)
-        candidates = [os.path.join(dir_path, db_name + '.sqlite3')
+        candidates = [os.path.join(dir_path, db_name + '.sqlite')
             for dir_path in [os.path.dirname(default_db_name)]
                        + settings.DEBUG_SQLITE3_PATHS]
         for candidate_db in candidates:
