@@ -127,9 +127,12 @@ class SiteMiddleware(object):
 
         # Dynamically update the db used for auth and saas.
         if site.db_name:
+            LOGGER.debug("multitier: connect to db '%s'", site.db_name)
             if not site.db_name in connections.databases:
                 connections.databases[site.db_name] = as_provider_db(
                     site.db_name)
+        else:
+            LOGGER.debug("multitier: use 'default' db")
 
         # This is where you would typically override ``request.urlconf``
         # based on the ``Site``.

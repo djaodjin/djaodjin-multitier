@@ -37,11 +37,14 @@ class CurrentSite(object):
         self.project = project
         self.path_prefix = path_prefix
 
-    def __unicode__(self):
-        return self.project.__unicode__()
-
     def __getattr__(self, name):
         return getattr(self.project, name)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        return self.project.__unicode__()
 
 
 def clear_cache():
