@@ -46,5 +46,5 @@ def get_site_model():
             raise ImproperlyConfigured("MULTITIER_SITE_MODEL refers to model"\
                 " '%s' that has not been installed"
                 % django_settings.MULTITIER_SITE_MODEL)
-    else:
-        django_apps.get_model('multitier.Site')
+
+    return django_apps.get_model('multitier.Site')
