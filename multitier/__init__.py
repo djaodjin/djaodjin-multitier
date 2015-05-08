@@ -32,8 +32,6 @@ from django.apps import apps as django_apps
 from django.conf import settings as django_settings
 from django.core.exceptions import ImproperlyConfigured
 
-from .models import Site
-
 def get_site_model():
     """
     Returns the ``Site`` model that is active in this project.
@@ -49,4 +47,4 @@ def get_site_model():
                 " '%s' that has not been installed"
                 % django_settings.MULTITIER_SITE_MODEL)
     else:
-        return Site
+        django_apps.get_model('multitier.Site')

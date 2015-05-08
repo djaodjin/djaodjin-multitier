@@ -57,16 +57,17 @@ class Site(models.Model):
         validators=[domain_name_validator])
     slug = models.SlugField(unique=True,
         help_text="unique subdomain of root site")
-    db_name = models.CharField(max_length=255, null=True,
+    db_name = models.SlugField(null=True,
        help_text='name of database to connect to for the site')
     db_host = models.CharField(max_length=255, null=True,
        help_text='host to connect to to access the database')
     db_port = models.IntegerField(null=True,
        help_text='port to connect to to access the database')
-    theme = models.CharField(max_length=255, null=True,
+    theme = models.SlugField(null=True,
        help_text='alternative search name for finding templates')
     account = models.ForeignKey(
         settings.ACCOUNT_MODEL, related_name='sites', null=True)
+    is_active = models.BooleanField(default=False)
 
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
