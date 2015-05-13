@@ -26,7 +26,7 @@
 PEP 386-compliant version number for the multitier django app.
 """
 
-__version__ = '0.1.0'
+__version__ = '0.1.1-dev'
 
 from django.apps import apps as django_apps
 from django.conf import settings as django_settings
