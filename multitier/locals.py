@@ -62,4 +62,11 @@ def get_current_site():
 
 
 def set_current_site(project, path_prefix):
+    prev_project = None
+    prev_path_prefix = None
+    if (hasattr(_thread_locals, 'site')
+        and isinstance(_thread_locals.site, CurrentSite)):
+        prev_project = _thread_locals.site.project
+        prev_path_prefix = _thread_locals.site.path_prefix
     _thread_locals.site = CurrentSite(project, path_prefix)
+    return (prev_project, prev_path_prefix)
