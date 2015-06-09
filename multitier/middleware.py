@@ -143,7 +143,8 @@ class SiteMiddleware(object):
         # 2. Then we hack into the translation module to get
         # django.core.urlresolvers to play nicely with our url scheme
         # with regards to the active site.
-        set_current_site(site, path_prefix)
+        set_current_site(site, path_prefix,
+            default_scheme=request.scheme, default_host=request.get_host())
         globalpath = os.path.join(os.path.dirname(
                 upath(sys.modules[django_settings.__module__].__file__)),
                 'locale')
