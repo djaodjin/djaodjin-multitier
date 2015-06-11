@@ -39,6 +39,8 @@ class CurrentSite(object):
                  default_scheme='http', default_host='localhost'):
         self.project = project
         self.path_prefix = path_prefix
+        self.default_scheme = default_scheme
+        self.default_host = default_host
 
     def __getattr__(self, name):
         return getattr(self.project, name)
@@ -53,9 +55,9 @@ class CurrentSite(object):
         if self.project.domain:
             host = self.project.domain
         else:
-            host = default_host
+            host = self.default_host
         return iri_to_uri('%(scheme)s://%(host)s%(path)s' % {
-            'scheme': default_scheme, 'host': host, 'path': path})
+            'scheme': self.default_scheme, 'host': host, 'path': path})
 
 
 def clear_cache():
