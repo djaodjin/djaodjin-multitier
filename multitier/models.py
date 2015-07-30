@@ -32,7 +32,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from . import settings
+from . import settings, get_site_model
 
 
 def domain_name_validator(value):
@@ -86,3 +86,10 @@ class Site(models.Model):
         if self.theme:
             return (self.theme, self.slug)
         return (self.slug,)
+
+
+def get_site(slug):
+    """
+    Returns a ``Site`` instance based on its slug.
+    """
+    return get_site_model().objects.get(slug=slug)
