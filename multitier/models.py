@@ -52,11 +52,13 @@ def domain_name_validator(value):
 
 class Site(models.Model):
 
-    domain = models.CharField(null=True, max_length=100,
-        help_text='fully qualified domain name',
+    domain = models.CharField(null=True, blank=True, max_length=100,
+        help_text='fully qualified domain name at which the site is available',
         validators=[domain_name_validator])
     slug = models.SlugField(unique=True,
-        help_text="unique subdomain of root site")
+        help_text="unique identifier for the site")
+    subdomain = models.SlugField(unique=True,
+        help_text="subdomain of the platform on which the site is available")
     db_name = models.SlugField(null=True,
        help_text='name of database to connect to for the site')
     db_host = models.CharField(max_length=255, null=True,
@@ -77,7 +79,7 @@ class Site(models.Model):
 
     @property
     def printable_name(self):
-        return self.slug
+        return self.subdomain
 
     def get_templates(self):
         """

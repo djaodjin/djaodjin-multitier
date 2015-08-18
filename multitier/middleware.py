@@ -103,12 +103,12 @@ class SiteMiddleware(object):
                 candidate = django_settings.APP_NAME
         try:
             queryset = get_site_model().objects.filter(Q(domain=host)
-                | Q(slug=candidate) | Q(slug=django_settings.APP_NAME)
+                | Q(subdomain=candidate) | Q(subdomain=django_settings.APP_NAME)
             ).order_by('-pk')
             if not queryset.exists():
                 raise Site.DoesNotExist #pylint: disable=raising-bad-type
             site = queryset.first()
-            if site and site.slug != path_prefix:
+            if site and site.subdomain != path_prefix:
                 path_prefix = ''
         except Site.DoesNotExist:
             raise Http404(

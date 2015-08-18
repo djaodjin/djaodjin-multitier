@@ -22,8 +22,25 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from . import get_site_model
+from . import get_site_model, settings
+from .compat import get_model_class, import_string
 from .locals import get_current_site
+
+class AccountMixin(object):
+
+    account_url_kwarg = settings.ACCOUNT_URL_KWARG
+
+    @property
+    def account(self):
+        if not hasattr(self, '_account'):
+            if settings.ACCOUNT_GET_CURRENT:
+                self._account = import_string(settings.ACCOUNT_GET_CURRENT)(
+                    self.kwargs.get(self.account_url_kwarg))
+            else:
+                self._account = get_model_class(settings.ACCOUNT_MODEL,
+                    "MULTITIER['ACCOUNT_MODEL']").objects.get(
+                    slug=self.kwargs.get(self.account_url_kwarg, None))
+        return self._account
 
 
 class SiteMixin(object):
