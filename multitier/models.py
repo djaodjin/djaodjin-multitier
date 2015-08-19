@@ -67,6 +67,8 @@ class Site(models.Model):
        help_text='port to connect to to access the database')
     theme = models.SlugField(null=True,
        help_text='alternative search name for finding templates')
+    base = models.ForeignKey('multitier.Site', null=True,
+       help_text='The site is a derivative of this parent.')
     account = models.ForeignKey(
         settings.ACCOUNT_MODEL, related_name='sites', null=True)
     is_active = models.BooleanField(default=False)

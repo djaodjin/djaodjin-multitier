@@ -43,7 +43,7 @@ class AccountMixin(object):
         return self._account
 
 
-class SiteMixin(object):
+class SiteMixin(AccountMixin):
     """
     Returns a ``Site`` from a URL or the default site if none can be found.
     """
