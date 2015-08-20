@@ -57,7 +57,8 @@ class Site(models.Model):
         validators=[domain_name_validator])
     slug = models.SlugField(unique=True,
         help_text="unique identifier for the site")
-    subdomain = models.SlugField(unique=True,
+    subdomain = models.SlugField(
+        # Not unique since it will always be '' for base.
         help_text="subdomain of the platform on which the site is available")
     db_name = models.SlugField(null=True,
        help_text='name of database to connect to for the site')
