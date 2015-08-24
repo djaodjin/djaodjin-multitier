@@ -81,6 +81,11 @@ class Site(models.Model):
         return unicode(self.slug)
 
     @property
+    def is_alias(self):
+        #pylint:disable=no-member
+        return self.base_id and self.subdomain == self.base.slug
+
+    @property
     def printable_name(self):
         return self.subdomain
 
