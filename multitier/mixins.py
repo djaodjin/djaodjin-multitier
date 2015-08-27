@@ -22,9 +22,12 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from django.db import connections
+
 from . import get_site_model, settings
 from .compat import get_model_class, import_string
 from .locals import get_current_site
+from .middleware import as_provider_db
 
 class AccountMixin(object):
 
@@ -50,9 +53,16 @@ class SiteMixin(AccountMixin):
     site_url_kwarg = 'site'
 
     def get_site(self):
-        if self.site_url_kwarg in self.kwargs:
-            queryset = get_site_model().objects.filter(
-                slug=self.kwargs.get(self.site_url_kwarg))
-            if queryset.exists():
-                return queryset.get()
-        return get_current_site().project
+        #pylint: disable=access-member-before-definition
+        if not hasattr(self, '_site') or self._site is None:
+            if self.site_url_kwarg in self.kwargs:
+                queryset = get_site_model().objects.filter(
+                    slug=self.kwargs.get(self.site_url_kwarg))
+                if queryset.exists():
+                    self._site = queryset.get()
+            if not self._site:
+                self._site = get_current_site().project
+            db_name = self._site.db_name if self._site.db_name else 'default'
+            if not db_name in connections.databases:
+                connections.databases[db_name] = as_provider_db(db_name)
+        return self._site
