@@ -87,15 +87,21 @@ class Site(models.Model):
 
     @property
     def printable_name(self):
-        return self.subdomain
+        if self.subdomain:
+            return self.subdomain
+        return self.slug
 
     def get_templates(self):
         """
         Returns a list of candidate search paths for templates.
         """
         if self.theme:
-            return (self.theme, self.slug)
-        return (self.slug,)
+            result = [self.theme, self.slug]
+        else:
+            result = [self.slug]
+        if self.subdomain:
+            result += [self.subdomain]
+        return tuple(result)
 
 
 def get_site(slug):

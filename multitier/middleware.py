@@ -113,8 +113,9 @@ class SiteMiddleware(object):
         except Site.DoesNotExist:
             raise Http404(
                 "%s nor %s could be found." % (host, django_settings.APP_NAME))
-        LOGGER.debug("multitier: access site '%s' with prefix '%s'",
-            site, path_prefix)
+        LOGGER.debug(
+            "multitier: access site '%s' (subdomain: '%s') with prefix '%s'",
+            site, site.subdomain, path_prefix)
         return site, path_prefix
 
 
