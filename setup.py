@@ -26,12 +26,25 @@ from distutils.core import setup
 
 import multitier
 
+requirements = []
+with open('./requirements.txt') as requirements_txt:
+    for line in requirements_txt:
+        prerequisite = line.split('#')[0].strip()
+        if prerequisite:
+            requirements += [prerequisite]
+
 setup(
     name='djaodjin-multitier',
     version=multitier.__version__,
     author='DjaoDjin inc.',
     author_email='support@djaodjin.com',
-    packages=['multitier'],
-    license='BSD',
+    install_requires=requirements,
+    packages=['multitier', 'multitier.templatetags'],
     description='Multi-tier Django app',
+    url='https://github.com/djaodjin/djaodjin-multitier/',
+    download_url='https://github.com/djaodjin/djaodjin-multitier/tarball/%s' \
+        % multitier.__version__,
+    license='BSD',
+    long_description=open('README.md').read(),
+
 )
