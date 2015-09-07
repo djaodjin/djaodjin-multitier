@@ -23,7 +23,6 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from django import template
-from django.utils.encoding import iri_to_uri
 from django.templatetags.static import StaticNode
 
 from ..locals import get_current_site
@@ -37,8 +36,8 @@ class MultitierStaticNode(StaticNode):
     def url(self, context):
         path = super(MultitierStaticNode, self).url(context)
         site = get_current_site()
-        if site.theme:
-            return '/%s%s' % (iri_to_uri(site.theme), path)
+        if site.path_prefix:
+            return '/%s%s' % (site.subdomain, path)
         return path
 
 
