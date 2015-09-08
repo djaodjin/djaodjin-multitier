@@ -40,7 +40,12 @@ class MultitierFileSystemFinder(FileSystemFinder):
         postfix = django_settings.STATIC_URL
         if postfix.startswith('/'):
             postfix = postfix[1:]
-        roots = [os.path.join(django_settings.STATIC_ROOT,
+        roots = []
+        site = get_current_site()
+        if site is not None:
+            # ``site`` could be ``None`` when this code is used through
+            # a manage.py command (ex: collectstatic).
+            roots += [os.path.join(django_settings.STATIC_ROOT,
                 theme, postfix) for theme in get_current_site().get_templates()]
         roots += [os.path.join(django_settings.STATIC_ROOT, postfix)]
         for root in roots:
