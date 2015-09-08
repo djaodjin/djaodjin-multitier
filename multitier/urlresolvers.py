@@ -24,6 +24,7 @@
 
 import re
 
+from django import VERSION as DJANGO_VERSION
 from django.core.urlresolvers import RegexURLResolver
 from django.conf.urls import patterns
 from django.utils.translation.trans_real import DjangoTranslation
@@ -34,7 +35,21 @@ from .locals import get_current_site
 class SiteCode(DjangoTranslation):
 
     def __init__(self, *args, **kw):
-        DjangoTranslation.__init__(self, *args, **kw)
+        # Django 1.7:
+        #    def __init__(self, *args, **kw):
+        #        gettext_module.GNUTranslations.__init__(self, *args, **kw)
+        # Django 1.8:
+        #    def __init__(self, language):
+        #        gettext_module.GNUTranslations.__init__(self)
+        #        self.__language = language
+        # XXX Django 1.8 prototype is very strange since the call
+        #     from gettext.py will be:
+        #         with open(mofile, 'rb') as fp:
+        #             t = _translations.setdefault(key, class_(fp))
+        if DJANGO_VERSION[0] == 1 and DJANGO_VERSION[1] < 8:
+            DjangoTranslation.__init__(self, *args, **kw)
+        else:
+            DjangoTranslation.__init__(self, 'en-us')
         self._catalog = {}
         self.set_output_charset('utf-8')
         self.__language = 'en-us'

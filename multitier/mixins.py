@@ -23,6 +23,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from django.db import connections
+from django.shortcuts import get_object_or_404
 
 from . import get_site_model, settings
 from .compat import get_model_class, import_string
@@ -56,13 +57,22 @@ class SiteMixin(AccountMixin):
         #pylint: disable=access-member-before-definition
         if not hasattr(self, '_site') or self._site is None:
             if self.site_url_kwarg in self.kwargs:
-                queryset = get_site_model().objects.filter(
-                    slug=self.kwargs.get(self.site_url_kwarg))
-                if queryset.exists():
-                    self._site = queryset.get()
-            if not self._site:
+                self._site = get_object_or_404(
+                    get_site_model(), slug=self.kwargs.get(self.site_url_kwarg))
+            else:
                 self._site = get_current_site().project
             db_name = self._site.db_name if self._site.db_name else 'default'
             if not db_name in connections.databases:
                 connections.databases[db_name] = as_provider_db(db_name)
         return self._site
+
+    def get_actual_domain(self):
+        site = self.get_site()
+        if site.domain:
+            return site.domain
+        return '%s/%s' % (self.request.get_host(), site.slug)
+
+    def get_absolute_uri(self, location=''):
+        return '%(scheme)s://%(domain)s/%(path)s' % {
+            'scheme': self.request.scheme, 'domain': self.get_actual_domain(),
+            'path': location}
