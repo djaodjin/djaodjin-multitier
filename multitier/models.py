@@ -104,8 +104,15 @@ class Site(models.Model):
         return tuple(result)
 
 
-def get_site(slug):
+def get_site_or_none(slug):
     """
-    Returns a ``Site`` instance based on its slug.
+    Returns a ``Site`` instance based on its slug. If none could be found,
+    then returns ``None``.
     """
-    return get_site_model().objects.get(slug=slug)
+    #pylint:disable=invalid-name
+    SiteModel = get_site_model()
+    try:
+        return SiteModel.objects.get(slug=slug)
+    except SiteModel.DoesNotExist:
+        pass
+    return None
