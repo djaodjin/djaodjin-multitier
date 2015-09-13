@@ -58,7 +58,8 @@ class SiteMixin(AccountMixin):
         if not hasattr(self, '_site') or self._site is None:
             if self.site_url_kwarg in self.kwargs:
                 self._site = get_object_or_404(
-                    get_site_model(), slug=self.kwargs.get(self.site_url_kwarg))
+                    get_site_model(), slug=self.kwargs.get(self.site_url_kwarg),
+                    account=self.account)
             else:
                 self._site = get_current_site().project
             db_name = self._site.db_name if self._site.db_name else 'default'
