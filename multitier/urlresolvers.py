@@ -82,7 +82,7 @@ class SiteRegexURLResolver(RegexURLResolver):
     def regex(self):
         current_site = get_current_site()
         if current_site and current_site.path_prefix:
-            # project will be None when 'manage.py show_urls' is invoked.
+            # site will be None when 'manage.py show_urls' is invoked.
             return re.compile('^%s/' % current_site.path_prefix, re.UNICODE)
         return re.compile('^', re.UNICODE)
 

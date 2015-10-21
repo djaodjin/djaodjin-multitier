@@ -29,6 +29,21 @@ from . import get_site_model, settings
 from .compat import get_model_class, import_string
 from .locals import get_current_site
 from .middleware import as_provider_db
+from .models import Site
+
+
+def build_absolute_uri(request, location='', site=None):
+    if site is None:
+        site = get_current_site()
+    elif not isinstance(site, Site):
+        site = get_object_or_404(Site, slug=site)
+    if site.domain:
+        actual_domain = site.domain
+    else:
+        actual_domain = '%s/%s' % (request.get_host(), site.slug)
+    return '%(scheme)s://%(domain)s/%(path)s' % {
+        'scheme': request.scheme, 'domain': actual_domain, 'path': location}
+
 
 class AccountMixin(object):
 
@@ -61,7 +76,7 @@ class SiteMixin(AccountMixin):
                     get_site_model(), slug=self.kwargs.get(self.site_url_kwarg),
                     account=self.account)
             else:
-                self._site = get_current_site().project
+                self._site = get_current_site().db_object
             db_name = self._site.db_name if self._site.db_name else 'default'
             if not db_name in connections.databases:
                 connections.databases[db_name] = as_provider_db(db_name)
@@ -74,6 +89,4 @@ class SiteMixin(AccountMixin):
         return '%s/%s' % (self.request.get_host(), site.slug)
 
     def get_absolute_uri(self, location=''):
-        return '%(scheme)s://%(domain)s/%(path)s' % {
-            'scheme': self.request.scheme, 'domain': self.get_actual_domain(),
-            'path': location}
+        return build_absolute_uri(self.request, location, site=self.get_site())

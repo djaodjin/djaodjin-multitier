@@ -34,7 +34,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 def get_site_model():
     """
-    Returns the ``Site`` model that is active in this project.
+    Returns the ``Site`` model that is active in this Django project.
     """
     if hasattr(django_settings, 'MULTITIER_SITE_MODEL'):
         try:
