@@ -74,6 +74,16 @@ def get_current_site():
     return getattr(_thread_locals, 'site', None)
 
 
+def get_path_prefix():
+    """
+    Returns the prefix every URL paths is prefixed with.
+    """
+    site = get_current_site()
+    if site:
+        return site.path_prefix
+    return ""
+
+
 def set_current_site(site, path_prefix,
         default_scheme='http', default_host='localhost'):
     prev_site = None
