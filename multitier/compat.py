@@ -38,6 +38,12 @@ except ImportError: # django < 1.7
     #pylint: disable=unused-import
     from django.utils.module_loading import import_by_path as import_string
 
+try:
+     #pylint: disable=no-name-in-module, unused-import
+    from django.template import Origin
+except ImportError:
+    Origin = None
+
 
 def get_model_class(full_name, settings_meta):
     """
