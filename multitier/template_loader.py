@@ -29,6 +29,7 @@ from django.template.loaders.filesystem import Loader as FilesystemLoader
 from django.utils._os import safe_join
 
 from .locals import get_current_site
+from .compat import Origin
 
 LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +38,10 @@ class Loader(FilesystemLoader):
     def get_template_sources(self, template_name, template_dirs=None):
         try:
             if not template_dirs:
-                template_dirs = settings.TEMPLATE_DIRS
+                try:
+                    template_dirs = self.get_dirs()
+                except AttributeError: # django < 1.8
+                    template_dirs = settings.TEMPLATE_DIRS
             themes = []
             current_site = get_current_site()
             if current_site:
@@ -47,7 +51,14 @@ class Loader(FilesystemLoader):
                     try:
                         template_path = safe_join(
                             template_dir, theme, template_name)
-                        yield template_path
+                        if Origin:
+                            yield Origin(
+                                name=template_path,
+                                template_name=template_name,
+                                loader=self,
+                            )
+                        else: # python < 1.8
+                            yield template_path
                     except UnicodeDecodeError:
                         # The template dir name was a bytestring that wasn't
                         # valid UTF-8.
