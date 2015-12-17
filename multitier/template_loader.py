@@ -24,6 +24,7 @@
 
 import logging
 
+import django
 from django.conf import settings
 from django.template.loaders.filesystem import Loader as FilesystemLoader
 from django.utils._os import safe_join
@@ -51,14 +52,13 @@ class Loader(FilesystemLoader):
                     try:
                         template_path = safe_join(
                             template_dir, theme, template_name)
-                        if Origin:
+                        if django.VERSION[0] <= 1 and django.VERSION[1] < 9:
+                            yield template_path
+                        else:
                             yield Origin(
                                 name=template_path,
                                 template_name=template_name,
-                                loader=self,
-                            )
-                        else: # python < 1.8
-                            yield template_path
+                                loader=self)
                     except UnicodeDecodeError:
                         # The template dir name was a bytestring that wasn't
                         # valid UTF-8.

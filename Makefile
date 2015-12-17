@@ -21,13 +21,13 @@ credentials: $(srcDir)/testsite/etc/credentials
 		sed -e "s,\%(SECRET_KEY)s,$${SECRET_KEY}," $< > $@
 
 initdb: install-conf
-	-rm -f db.sqlite3 example1.sqlite3 example2.sqlite3
+	-rm -f $(srcDir)/db.sqlite $(srcDir)/example1.sqlite $(srcDir)/example2.sqlite
 	cd $(srcDir) && $(PYTHON) ./manage.py migrate --noinput
 	cd $(srcDir) && $(PYTHON) ./manage.py loaddata testsite/fixtures/test_data.json
-	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite3 $(PYTHON) ./manage.py migrate --database example1 --noinput
-	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite3 $(PYTHON) ./manage.py loaddata --database example1 testsite/fixtures/example1.json
-	cd $(srcDir) && MULTITIER_DB_FILE=example2.sqlite3 $(PYTHON) ./manage.py migrate --database example2 --noinput
-	cd $(srcDir) && MULTITIER_DB_FILE=example2.sqlite3 $(PYTHON) ./manage.py loaddata --database example2 testsite/fixtures/example2.json
+	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite $(PYTHON) ./manage.py migrate --database example1 --noinput
+	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite $(PYTHON) ./manage.py loaddata --database example1 testsite/fixtures/example1.json
+	cd $(srcDir) && MULTITIER_DB_FILE=example2.sqlite $(PYTHON) ./manage.py migrate --database example2 --noinput
+	cd $(srcDir) && MULTITIER_DB_FILE=example2.sqlite $(PYTHON) ./manage.py loaddata --database example2 testsite/fixtures/example2.json
 
 doc:
 	$(installDirs) docs
