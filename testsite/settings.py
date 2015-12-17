@@ -83,6 +83,9 @@ ROOT_URLCONF = 'testsite.urls'
 
 WSGI_APPLICATION = 'testsite.wsgi.application'
 
+# Templates
+# ---------
+# Django 1.7 and below
 TEMPLATE_LOADERS = (
     'multitier.template_loader.Loader',
     'django.template.loaders.filesystem.Loader',
@@ -102,6 +105,20 @@ TEMPLATE_DIRS = (
     BASE_DIR + '/testsite/templates',
 )
 
+# Django 1.8+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': TEMPLATE_DIRS,
+        'OPTIONS': {
+            'context_processors': [proc.replace(
+                'django.core.context_processors',
+                'django.template.context_processors')
+                for proc in TEMPLATE_CONTEXT_PROCESSORS],
+            'loaders': TEMPLATE_LOADERS},
+    },
+]
+
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 DATABASE_ROUTERS = ('multitier.routers.SiteRouter',)
@@ -109,7 +126,7 @@ DATABASE_ROUTERS = ('multitier.routers.SiteRouter',)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3')
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite')
     }
 }
 
@@ -165,9 +182,9 @@ LOGGING = {
         }
     },
     'loggers': {
-        'saas': {
+        'multitier': {
             'handlers': ['logfile'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'django.request': {

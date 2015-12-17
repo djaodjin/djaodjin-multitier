@@ -1,4 +1,4 @@
 *~
 *.pyc
-*.sqlite3
+*.sqlite
 credentials
