@@ -87,11 +87,12 @@ class SiteRegexURLResolver(RegexURLResolver):
         return re.compile('^', re.UNICODE)
 
 
-def site_patterns(pattern_list):
+def site_patterns(*args):
     """
     Adds the live organization prefix to every URL pattern within this
     function. This may only be used in the root URLconf, not in an included
     URLconf.
     """
+    pattern_list = args
     return [SiteRegexURLResolver(pattern_list)]
 

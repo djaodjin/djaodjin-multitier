@@ -28,10 +28,11 @@ from django.views.generic import TemplateView
 
 from multitier.urlresolvers import site_patterns
 
-urlpatterns = site_patterns([
+
+urlpatterns = site_patterns(
     url(r'^', include('django.contrib.auth.urls')),
     url(r'^accounts/profile/',
         login_required(TemplateView.as_view(template_name='index.html')),
         name='accounts_profile'),
     url(r'^$', TemplateView.as_view(template_name='index.html')),
-])
+)
