@@ -40,7 +40,7 @@ class Loader(FilesystemLoader):
         try:
             if not template_dirs:
                 try:
-                    template_dirs = self.get_dirs()
+                    template_dirs = self.get_dirs() #pylint:disable=no-member
                 except AttributeError: # django < 1.8
                     template_dirs = settings.TEMPLATE_DIRS
             themes = []

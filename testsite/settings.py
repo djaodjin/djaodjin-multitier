@@ -52,8 +52,6 @@ load_config(os.path.join(BASE_DIR, 'credentials'))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -85,6 +83,8 @@ WSGI_APPLICATION = 'testsite.wsgi.application'
 
 # Templates
 # ---------
+TEMPLATE_DEBUG = True
+
 # Django 1.7 and below
 TEMPLATE_LOADERS = (
     'multitier.template_loader.Loader',

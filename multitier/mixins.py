@@ -39,10 +39,16 @@ def build_absolute_uri(request, location='', site=None):
         site = get_object_or_404(Site, slug=site)
     if site.domain:
         actual_domain = site.domain
-    else:
+    elif request:
+        scheme = request.scheme
         actual_domain = '%s/%s' % (request.get_host(), site.slug)
+    else:
+        # Without a request or an explicit domain, we just have no way
+        # of knowing. Use a hardcoded default.
+        scheme = 'http'
+        actual_domain = '%s/%s' % (settings.DEFAULT_DOMAIN, site.slug)
     return '%(scheme)s://%(domain)s/%(path)s' % {
-        'scheme': request.scheme, 'domain': actual_domain, 'path': location}
+        'scheme': scheme, 'domain': actual_domain, 'path': location}
 
 
 class AccountMixin(object):
