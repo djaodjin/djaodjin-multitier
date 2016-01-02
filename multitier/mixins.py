@@ -33,6 +33,7 @@ from .models import Site
 
 
 def build_absolute_uri(request, location='', site=None):
+    scheme = 'http'
     if site is None:
         site = get_current_site()
     elif not isinstance(site, Site):
@@ -45,7 +46,6 @@ def build_absolute_uri(request, location='', site=None):
     else:
         # Without a request or an explicit domain, we just have no way
         # of knowing. Use a hardcoded default.
-        scheme = 'http'
         actual_domain = '%s/%s' % (settings.DEFAULT_DOMAIN, site.slug)
     return '%(scheme)s://%(domain)s/%(path)s' % {
         'scheme': scheme, 'domain': actual_domain, 'path': location}
