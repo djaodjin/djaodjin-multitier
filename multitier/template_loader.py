@@ -45,7 +45,8 @@ class Loader(FilesystemLoader):
                     template_dirs = settings.TEMPLATE_DIRS
             current_site = get_current_site()
             if current_site:
-                template_dirs = current_site.get_template_dirs() + template_dirs
+                template_dirs = current_site.get_template_dirs() + list(
+                    template_dirs)
             for template_dir in template_dirs:
                 try:
                     template_path = safe_join(template_dir, template_name)
