@@ -32,23 +32,33 @@ from .middleware import as_provider_db
 from .models import Site
 
 
-def build_absolute_uri(request, location='', site=None):
-    scheme = 'http'
+def build_absolute_uri(request, location='', site=None, with_scheme=True):
     if site is None:
         site = get_current_site()
     elif not isinstance(site, Site):
         site = get_object_or_404(Site, slug=site)
     if site.domain:
         actual_domain = site.domain
-    elif request:
-        scheme = request.scheme
-        actual_domain = '%s/%s' % (request.get_host(), site.slug)
     else:
-        # Without a request or an explicit domain, we just have no way
-        # of knowing. Use a hardcoded default.
-        actual_domain = '%s/%s' % (settings.DEFAULT_DOMAIN, site.slug)
-    return '%(scheme)s://%(domain)s/%(path)s' % {
-        'scheme': scheme, 'domain': actual_domain, 'path': location}
+        if request:
+            base_domain = request.get_host()
+        else:
+            # Without a request or an explicit domain, we just have no way
+            # of knowing. Use a hardcoded default.
+            base_domain = settings.DEFAULT_DOMAIN
+        if base_domain.startswith('localhost') or site.is_path_prefix:
+            # In local development, we force use of path prefixes.
+            actual_domain = '%s/%s' % (base_domain, site.printable_name)
+        else:
+            actual_domain = '%s.%s' % (site.printable_name, base_domain)
+    result = "%(domain)s/%(path)s" % {'domain': actual_domain, 'path': location}
+    if with_scheme:
+        if request:
+            scheme = request.scheme
+        else:
+            scheme = 'http'
+        result = '%s://%s' % (scheme, result)
+    return result
 
 
 class AccountMixin(object):
@@ -89,10 +99,8 @@ class SiteMixin(AccountMixin):
         return self._site
 
     def get_actual_domain(self):
-        site = self.get_site()
-        if site.domain:
-            return site.domain
-        return '%s/%s' % (self.request.get_host(), site.slug)
+        return build_absolute_uri(
+            self.request, site=self.get_site(), with_scheme=False)
 
     def get_absolute_uri(self, location=''):
         return build_absolute_uri(self.request, location, site=self.get_site())

@@ -74,6 +74,7 @@ class Site(models.Model):
     account = models.ForeignKey(
         settings.ACCOUNT_MODEL, related_name='sites', null=True)
     is_active = models.BooleanField(default=False)
+    is_path_prefix = models.BooleanField(default=False)
 
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
