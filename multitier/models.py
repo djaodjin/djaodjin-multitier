@@ -30,6 +30,7 @@ import string
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils._os import safe_join
 from django.utils.translation import ugettext_lazy as _
 
 from . import settings, get_site_model
@@ -91,17 +92,19 @@ class Site(models.Model):
             return self.subdomain
         return self.slug
 
-    def get_templates(self):
+    def get_template_dirs(self):
         """
         Returns a list of candidate search paths for templates.
         """
         if self.theme:
-            result = [self.theme, self.slug]
+            result = [safe_join(settings.THEMES_DIR, self.theme, 'templates'),
+                safe_join(settings.THEMES_DIR, self.slug, 'templates')]
         else:
-            result = [self.slug]
+            result = [safe_join(settings.THEMES_DIR, self.slug, 'templates')]
         if self.subdomain:
-            result += [self.subdomain]
-        return tuple(result)
+            result += [safe_join(settings.THEMES_DIR, self.subdomain,
+                'templates')]
+        return result
 
 
 def get_site_or_none(slug):
