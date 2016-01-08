@@ -153,3 +153,15 @@ class SiteMiddleware(object):
             'django', globalpath, class_=SiteCode)
         return None
 
+
+class SetRemoteAddrFromForwardedFor(object):
+    """
+    set REMOTE_ADDR based on HTTP_X_FORWARDED_FOR.
+    """
+
+    @staticmethod
+    def process_request(request):
+        if request.META.get('REMOTE_ADDR', '127.0.0.1') == '127.0.0.1':
+            request.META.update({'REMOTE_ADDR':
+                request.META.get('HTTP_X_FORWARDED_FOR', '127.0.0.1')})
+        return None
