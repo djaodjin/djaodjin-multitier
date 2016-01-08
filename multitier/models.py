@@ -93,19 +93,24 @@ class Site(models.Model):
             return self.subdomain
         return self.slug
 
+    def get_templates(self):
+        """
+        Returns a list of candidate themes.
+        """
+        if self.theme:
+            result = [self.theme, self.slug]
+        else:
+            result = [self.slug]
+        if self.subdomain:
+            result += [self.subdomain]
+        return result
+
     def get_template_dirs(self):
         """
         Returns a list of candidate search paths for templates.
         """
-        if self.theme:
-            result = [safe_join(settings.THEMES_DIR, self.theme, 'templates'),
-                safe_join(settings.THEMES_DIR, self.slug, 'templates')]
-        else:
-            result = [safe_join(settings.THEMES_DIR, self.slug, 'templates')]
-        if self.subdomain:
-            result += [safe_join(settings.THEMES_DIR, self.subdomain,
-                'templates')]
-        return result
+        return [safe_join(settings.THEMES_DIR, theme, 'templates')
+            for theme in self.get_templates()]
 
 
 def get_site_or_none(slug):
