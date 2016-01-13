@@ -39,7 +39,8 @@ _SETTINGS = {
     'ROUTER_APPS': ('auth', 'sessions', 'contenttypes'),
     'ROUTER_TABLES': [],
     'DEBUG_SQLITE3_PATHS': [],
-    'THEMES_DIR': os.path.join(settings.BASE_DIR, 'themes')
+    'THEMES_DIR': os.path.join(settings.BASE_DIR, 'themes'),
+    'STATICS_DIRS': settings.STATICFILES_DIRS
 }
 _SETTINGS.update(getattr(settings, 'MULTITIER', {}))
 
@@ -53,3 +54,4 @@ ROUTER_APPS = _SETTINGS.get('ROUTER_APPS')
 ROUTER_TABLES = _SETTINGS.get('ROUTER_TABLES')
 DEBUG_SQLITE3_PATHS = _SETTINGS.get('DEBUG_SQLITE3_PATHS')
 THEMES_DIR = _SETTINGS.get('THEMES_DIR')
+STATICS_DIRS = _SETTINGS.get('STATICS_DIRS')
