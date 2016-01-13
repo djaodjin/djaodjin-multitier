@@ -109,8 +109,9 @@ class Site(models.Model):
         """
         Returns a list of candidate search paths for templates.
         """
-        return [safe_join(settings.THEMES_DIR, theme, 'templates')
-            for theme in self.get_templates()]
+        return [safe_join(theme_dir, theme, 'templates')
+                for theme_dir in settings.THEMES_DIRS
+                    for theme in self.get_templates()]
 
 
 def get_site_or_none(slug):
