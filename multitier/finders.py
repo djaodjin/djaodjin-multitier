@@ -30,11 +30,8 @@ from django.contrib.staticfiles.finders import FileSystemFinder
 from django.core.files.storage import FileSystemStorage
 from django.contrib.staticfiles import utils
 
-
 from .locals import get_current_site
-from .settings import STATICS_DIRS
-
-searched_locations = [] #pylint: disable=invalid-name
+from .settings import STATICFILES_DIRS
 
 #pylint:disable=no-member
 class MultitierFileSystemFinder(FileSystemFinder):
@@ -42,7 +39,7 @@ class MultitierFileSystemFinder(FileSystemFinder):
     A static files finder that uses ``get_current_site()`` to locate files.
     """
 
-    def init_locations(self):
+    def get_locations(self):
         locations = []
         storages = OrderedDict()
         postfix = django_settings.STATIC_URL
@@ -54,10 +51,8 @@ class MultitierFileSystemFinder(FileSystemFinder):
             # ``site`` could be ``None`` when this code is used through
             # a manage.py command (ex: collectstatic).
             roots += [os.path.join(static_dir,
-                theme, postfix) for static_dir in STATICS_DIRS
+                theme, postfix) for static_dir in STATICFILES_DIRS
                     for theme in get_current_site().get_templates()]
-        roots += [os.path.join(static_dir, postfix)
-            for static_dir in STATICS_DIRS]
         for root in roots:
             prefix = ''
             if not (prefix, root) in locations:
@@ -75,10 +70,8 @@ class MultitierFileSystemFinder(FileSystemFinder):
         as defined in ``STATICFILES_DIRS`` and multitier locations.
         """
         matches = []
-        locations, _ = self.init_locations()
+        locations, _ = self.get_locations()
         for prefix, root in locations:
-            if root not in searched_locations:
-                searched_locations.append(root)
             matched_path = self.find_location(root, path, prefix)
             if matched_path:
                 if not all:
@@ -90,7 +83,7 @@ class MultitierFileSystemFinder(FileSystemFinder):
         """
         List all files in all locations.
         """
-        locations, storages = self.init_locations()
+        locations, storages = self.get_locations()
         for prefix, root in locations:
             storage = storages[root]
             for path in utils.get_files(storage, ignore_patterns):
