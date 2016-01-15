@@ -64,7 +64,7 @@ class MultitierFileSystemFinder(FileSystemFinder):
         storages.update(self.storages)
         return locations, storages
 
-    def find(self, path, all=False):
+    def find(self, path, all=False): #pylint:disable=redefined-builtin
         """
         Looks for files in the extra locations
         as defined in ``STATICFILES_DIRS`` and multitier locations.
@@ -84,7 +84,7 @@ class MultitierFileSystemFinder(FileSystemFinder):
         List all files in all locations.
         """
         locations, storages = self.get_locations()
-        for prefix, root in locations:
+        for _, root in locations:
             storage = storages[root]
             for path in utils.get_files(storage, ignore_patterns):
                 yield path, storage
