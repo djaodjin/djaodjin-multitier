@@ -22,21 +22,26 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from collections import OrderedDict
 import os
 
 from django.conf import settings as django_settings
 from django.contrib.staticfiles.finders import FileSystemFinder
 from django.core.files.storage import FileSystemStorage
+from django.contrib.staticfiles import utils
 
 from .locals import get_current_site
+from .settings import STATICFILES_DIRS
 
+#pylint:disable=no-member
 class MultitierFileSystemFinder(FileSystemFinder):
     """
     A static files finder that uses ``get_current_site()`` to locate files.
     """
-    def __init__(self, app_names=None, *args, **kwargs):
-        super(MultitierFileSystemFinder, self).__init__(
-            app_names, *args, **kwargs)
+
+    def get_locations(self):
+        locations = []
+        storages = OrderedDict()
         postfix = django_settings.STATIC_URL
         if postfix.startswith('/'):
             postfix = postfix[1:]
@@ -45,12 +50,41 @@ class MultitierFileSystemFinder(FileSystemFinder):
         if site is not None:
             # ``site`` could be ``None`` when this code is used through
             # a manage.py command (ex: collectstatic).
-            roots += [os.path.join(django_settings.STATIC_ROOT,
-                theme, postfix) for theme in get_current_site().get_templates()]
-        roots += [os.path.join(django_settings.STATIC_ROOT, postfix)]
+            roots += [os.path.join(static_dir,
+                theme, postfix) for static_dir in STATICFILES_DIRS
+                    for theme in get_current_site().get_templates()]
         for root in roots:
             prefix = ''
-            self.locations.append((prefix, root))
-            filesystem_storage = FileSystemStorage(location=root)
-            filesystem_storage.prefix = prefix
-            self.storages[root] = filesystem_storage
+            if not (prefix, root) in locations:
+                locations.append((prefix, root))
+                filesystem_storage = FileSystemStorage(location=root)
+                filesystem_storage.prefix = prefix
+                storages[root] = filesystem_storage
+        locations = locations + self.locations
+        storages.update(self.storages)
+        return locations, storages
+
+    def find(self, path, all=False):
+        """
+        Looks for files in the extra locations
+        as defined in ``STATICFILES_DIRS`` and multitier locations.
+        """
+        matches = []
+        locations, _ = self.get_locations()
+        for prefix, root in locations:
+            matched_path = self.find_location(root, path, prefix)
+            if matched_path:
+                if not all:
+                    return matched_path
+                matches.append(matched_path)
+        return matches
+
+    def list(self, ignore_patterns):
+        """
+        List all files in all locations.
+        """
+        locations, storages = self.get_locations()
+        for prefix, root in locations:
+            storage = storages[root]
+            for path in utils.get_files(storage, ignore_patterns):
+                yield path, storage
