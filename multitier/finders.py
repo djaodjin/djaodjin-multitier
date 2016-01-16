@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2016, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from collections import OrderedDict
-import os
+import errno, os
 
 from django.conf import settings as django_settings
 from django.contrib.staticfiles.finders import FileSystemFinder
@@ -40,19 +40,39 @@ class MultitierFileSystemFinder(FileSystemFinder):
     """
 
     def get_locations(self):
+        #pylint:disable=too-many-locals
         locations = []
         storages = OrderedDict()
-        postfix = django_settings.STATIC_URL
-        if postfix.startswith('/'):
-            postfix = postfix[1:]
         roots = []
         site = get_current_site()
         if site is not None:
             # ``site`` could be ``None`` when this code is used through
             # a manage.py command (ex: collectstatic).
-            roots += [os.path.join(static_dir,
-                theme, postfix) for static_dir in STATICFILES_DIRS
-                    for theme in get_current_site().get_templates()]
+            #
+            # Here we are inserting the *theme* at a natural place,
+            # i.e. before the path postfix matching STATIC_URL.
+            url_parts = []
+            for part in django_settings.STATIC_URL.split('/'):
+                if part:
+                    url_parts.append(part)
+            for static_dir in STATICFILES_DIRS:
+                drive, path = os.path.splitdrive(static_dir)
+                dir_parts = path.split(os.sep)
+                nb_dir_parts = len(dir_parts)
+                nb_url_parts = len(url_parts)
+                cut_point = nb_dir_parts - nb_url_parts
+                if cut_point > 0:
+                    for dir_part, url_part in zip(
+                        dir_parts[cut_point:], url_parts):
+                        if dir_part != url_part:
+                            cut_point = nb_dir_parts
+                            break
+                else:
+                    cut_point = nb_dir_parts
+                for theme in get_current_site().get_templates():
+                    roots.append(os.path.join(drive, os.sep,
+                        *(dir_parts[:cut_point] + [theme]
+                          + dir_parts[cut_point:])))
         for root in roots:
             prefix = ''
             if not (prefix, root) in locations:
@@ -86,5 +106,14 @@ class MultitierFileSystemFinder(FileSystemFinder):
         locations, storages = self.get_locations()
         for _, root in locations:
             storage = storages[root]
-            for path in utils.get_files(storage, ignore_patterns):
-                yield path, storage
+            try:
+                for path in utils.get_files(storage, ignore_patterns):
+                    yield path, storage
+            except OSError, err:
+                if err.errno == errno.ENOENT:
+                    # suppress "No such file or directory" error because
+                    # non-existent directories are considered optional search
+                    # path here.
+                    pass
+                else:
+                    raise
