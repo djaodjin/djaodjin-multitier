@@ -32,7 +32,7 @@ from .middleware import as_provider_db
 from .models import Site
 
 
-def build_absolute_uri(request, location='', site=None, with_scheme=True):
+def build_absolute_uri(request, location='/', site=None, with_scheme=True):
     if site is None:
         site = get_current_site()
     elif not isinstance(site, Site):
@@ -46,12 +46,12 @@ def build_absolute_uri(request, location='', site=None, with_scheme=True):
             # Without a request or an explicit domain, we just have no way
             # of knowing. Use a hardcoded default.
             base_domain = settings.DEFAULT_DOMAIN
-        if base_domain.startswith('localhost') or site.is_path_prefix:
+        if base_domain == settings.DEFAULT_DOMAIN and not site.is_path_prefix:
+            actual_domain = '%s.%s' % (site.printable_name, base_domain)
+        else:
             # In local development, we force use of path prefixes.
             actual_domain = '%s/%s' % (base_domain, site.printable_name)
-        else:
-            actual_domain = '%s.%s' % (site.printable_name, base_domain)
-    result = "%(domain)s/%(path)s" % {'domain': actual_domain, 'path': location}
+    result = "%(domain)s%(path)s" % {'domain': actual_domain, 'path': location}
     if with_scheme:
         if request:
             scheme = request.scheme
