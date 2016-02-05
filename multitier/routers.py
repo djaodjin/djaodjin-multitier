@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2016, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,9 @@
 from django.conf import settings as django_settings
 from django.db import DEFAULT_DB_ALIAS
 
-from .locals import get_current_site
 from . import settings
+from .compat import get_app_model_class
+from .locals import get_current_site
 
 
 class SiteRouter(object):
@@ -85,11 +86,18 @@ class SiteRouter(object):
 
     # XXX Note here running tests with Django <1.7 will call
     #     allow_syncdb instead.
-    def allow_migrate(self, database, model):
+    def allow_migrate(self, database, app_label, model_name=None, **hints):
         """
         Make sure the apps only appears in the current provider
         database.
         """
+        model = hints.get('model')
+        if model is None:
+            if model_name is not None:
+                model = get_app_model_class(app_label, model_name)
+            else:
+                # Django 1.7 prototype is allow_migrate(self, db, model)
+                model = app_label
         if database != DEFAULT_DB_ALIAS:
             return self.includes(model)
         return True

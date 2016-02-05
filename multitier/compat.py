@@ -46,7 +46,7 @@ except ImportError:
     Origin = None
 
 
-def get_model_class(full_name, settings_meta):
+def get_model_class(full_name, settings_meta=None):
     """
     Returns a model class loaded from *full_name*. *settings_meta* is the name
     of the corresponding settings variable (used for error messages).
@@ -57,8 +57,16 @@ def get_model_class(full_name, settings_meta):
         app_label, model_name = full_name.split('.')
     except ValueError:
         raise ImproperlyConfigured(
-            "%s must be of the form 'app_label.model_name'" % settings_meta)
+            "%s must be of the form 'app_label.model_name'" % full_name)
+    return get_app_model_class(app_label, model_name, settings_meta)
 
+
+def get_app_model_class(app_label, model_name, settings_meta=None):
+    """
+    Returns a model class loaded from *full_name*. *settings_meta* is the name
+    of the corresponding settings variable (used for error messages).
+    """
+    from django.core.exceptions import ImproperlyConfigured
     model_class = None
     try:
         from django.apps import apps
@@ -69,7 +77,9 @@ def get_model_class(full_name, settings_meta):
         model_class = get_model(app_label, model_name)
 
     if model_class is None:
+        if settings_meta is None:
+            settings_meta = 'settings'
         raise ImproperlyConfigured(
             "%s refers to model '%s' that has not been installed"
-            % (settings_meta, full_name))
+            % (settings_meta, app_label + '.' + model_name))
     return model_class
