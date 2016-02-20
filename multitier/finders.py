@@ -26,7 +26,8 @@ from collections import OrderedDict
 import errno, os
 
 from django.conf import settings as django_settings
-from django.contrib.staticfiles.finders import FileSystemFinder
+from django.contrib.staticfiles.finders import (
+    FileSystemFinder, AppDirectoriesFinder as BaseAppDirectoriesFinder)
 from django.core.files.storage import FileSystemStorage
 from django.contrib.staticfiles import utils
 
@@ -117,3 +118,17 @@ class MultitierFileSystemFinder(FileSystemFinder):
                     pass
                 else:
                     raise
+
+
+class AppDirectoriesFinder(BaseAppDirectoriesFinder):
+    """
+    Override of ``django.contrib.staticfiles.AppDirectoriesFinder`` that
+    removes the source_dir prefix from path before continuing the search.
+    It is the only way so far we found to run django_assets in both
+    debug and production mode in the context of multitier sites.
+    """
+
+    def find_in_app(self, app, path):
+        if path.startswith(self.source_dir):
+            path = path[len(self.source_dir) + 1:]
+        return super(AppDirectoriesFinder, self).find_in_app(app, path)
