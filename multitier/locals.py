@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2016, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,10 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from django.core.urlresolvers import reverse
 from django.utils.encoding import iri_to_uri
+
+from . import settings
 
 try:
     from threading import local
@@ -32,6 +35,7 @@ except ImportError:
     from django.utils._threading_local import local
 
 _thread_locals = local() #pylint: disable=invalid-name
+
 
 class CurrentSite(object):
 
@@ -85,7 +89,7 @@ def get_path_prefix():
 
 
 def set_current_site(site, path_prefix,
-        default_scheme='http', default_host='localhost'):
+        default_scheme='http', default_host='localhost', request=None):
     prev_site = None
     prev_path_prefix = None
     if (hasattr(_thread_locals, 'site')
@@ -97,4 +101,9 @@ def set_current_site(site, path_prefix,
     else:
         _thread_locals.site = CurrentSite(site, path_prefix,
             default_scheme=default_scheme, default_host=default_host)
+    if request is not None:
+        request.site = _thread_locals.site
+        request.urls = {}
+        for url_name in settings.DEFAULT_URLS:
+            request.urls.update({url_name: reverse(url_name)})
     return (prev_site, prev_path_prefix)

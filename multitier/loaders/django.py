@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2016, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,6 +21,7 @@
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from __future__ import absolute_import
 
 import logging
 
@@ -29,25 +30,34 @@ from django.conf import settings
 from django.template.loaders.filesystem import Loader as FilesystemLoader
 from django.utils._os import safe_join
 
-from .locals import get_current_site
-from .compat import Origin
+from multitier.locals import get_current_site
+from multitier.compat import Origin
+
 
 LOGGER = logging.getLogger(__name__)
 
+
 class Loader(FilesystemLoader):
+
+    def __init__(self, engine):
+        super(Loader, self).__init__(engine)
+        self.encoding = 'utf-8'
+
+    def searchpath(self, template_dirs=None):
+        if not template_dirs:
+            try:
+                template_dirs = self.get_dirs() #pylint:disable=no-member
+            except AttributeError: # django < 1.8
+                template_dirs = settings.TEMPLATE_DIRS
+        current_site = get_current_site()
+        if current_site:
+            template_dirs = current_site.get_template_dirs() + list(
+                template_dirs)
+        return template_dirs
 
     def get_template_sources(self, template_name, template_dirs=None):
         try:
-            if not template_dirs:
-                try:
-                    template_dirs = self.get_dirs() #pylint:disable=no-member
-                except AttributeError: # django < 1.8
-                    template_dirs = settings.TEMPLATE_DIRS
-            current_site = get_current_site()
-            if current_site:
-                template_dirs = current_site.get_template_dirs() + list(
-                    template_dirs)
-            for template_dir in template_dirs:
+            for template_dir in self.searchpath(template_dirs=template_dirs):
                 try:
                     template_path = safe_join(template_dir, template_name)
                     if django.VERSION[0] <= 1 and django.VERSION[1] < 9:

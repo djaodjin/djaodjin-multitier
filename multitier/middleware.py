@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2016, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -145,7 +145,8 @@ class SiteMiddleware(object):
         # django.core.urlresolvers to play nicely with our url scheme
         # with regards to the active site.
         set_current_site(site, path_prefix,
-            default_scheme=request.scheme, default_host=request.get_host())
+            default_scheme=request.scheme, default_host=request.get_host(),
+            request=request)
         globalpath = os.path.join(os.path.dirname(
                 upath(sys.modules[django_settings.__module__].__file__)),
                 'locale')

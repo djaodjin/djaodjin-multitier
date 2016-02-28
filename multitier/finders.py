@@ -76,7 +76,7 @@ class MultitierFileSystemFinder(FileSystemFinder):
                           + dir_parts[cut_point:])))
         for root in roots:
             prefix = ''
-            if not (prefix, root) in locations:
+            if (prefix, root) not in locations:
                 locations.append((prefix, root))
                 filesystem_storage = FileSystemStorage(location=root)
                 filesystem_storage.prefix = prefix
