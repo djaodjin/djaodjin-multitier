@@ -39,7 +39,7 @@ setup(
     author='DjaoDjin inc.',
     author_email='support@djaodjin.com',
     install_requires=requirements,
-    packages=['multitier', 'multitier.templatetags'],
+    packages=['multitier', 'multitier.loaders', 'multitier.templatetags'],
     description='Multi-tier Django app',
     url='https://github.com/djaodjin/djaodjin-multitier/',
     download_url='https://github.com/djaodjin/djaodjin-multitier/tarball/%s' \
