@@ -51,8 +51,11 @@ class Loader(FilesystemLoader):
                 template_dirs = settings.TEMPLATE_DIRS
         current_site = get_current_site()
         if current_site:
-            template_dirs = current_site.get_template_dirs() + list(
-                template_dirs)
+            loader_template_dirs = []
+            for template_dir in current_site.get_template_dirs():
+                loader_template_dirs.append(safe_join(template_dir, 'django'))
+                loader_template_dirs.append(template_dir)
+            template_dirs = loader_template_dirs + list(template_dirs)
         return template_dirs
 
     def get_template_sources(self, template_name, template_dirs=None):
