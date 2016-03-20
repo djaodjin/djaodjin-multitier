@@ -23,9 +23,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import absolute_import
 
-import logging, os
+import hashlib, logging, os
 
-from django.conf import settings as django_settings
 import jinja2
 
 from multitier.locals import get_current_site
@@ -38,14 +37,13 @@ class Loader(jinja2.FileSystemLoader):
     """
     Jinja2 loader.
     """
-    def __init__(self, encoding='utf-8', followlinks=False):
+    def __init__(self, searchpath, encoding='utf-8', followlinks=False):
         super(Loader, self).__init__(
-            [], encoding=encoding, followlinks=followlinks)
+            searchpath, encoding=encoding, followlinks=followlinks)
 
-    @staticmethod
-    def get_template_dirs(template_dirs=None):
+    def get_template_dirs(self, template_dirs=None):
         if template_dirs is None:
-            template_dirs = django_settings.TEMPLATE_DIRS
+            template_dirs = self.searchpath
         current_site = get_current_site()
         if current_site:
             template_dirs = current_site.get_template_dirs() + list(
@@ -57,18 +55,21 @@ class Loader(jinja2.FileSystemLoader):
         pieces = jinja2.loaders.split_template_path(template)
         filename = None
         contents = None
-        mtime = None
+        digest = None
         for searchpath in self.get_template_dirs():
             filename = os.path.join(searchpath, *pieces)
             if os.path.isfile(filename):
                 with open(filename, "rb") as template_file:
                     contents = template_file.read().decode(self.encoding)
-                    mtime = os.path.getmtime(filename)
-                    break
+                digest = hashlib.sha1(contents).hexdigest()
+                break
         if filename is not None and contents is not None:
             def uptodate():
                 try:
-                    return os.path.getmtime(filename) == mtime
+                    with open(filename, "rb") as template_file:
+                        file_digest = hashlib.sha1(
+                            template_file.read().decode(self.encoding))
+                        return file_digest == digest
                 except OSError:
                     return False
             return contents, filename, uptodate
