@@ -25,6 +25,7 @@ from __future__ import absolute_import
 
 import hashlib, logging, os
 
+from django.utils._os import safe_join
 import jinja2
 
 from multitier.locals import get_current_site
@@ -46,8 +47,11 @@ class Loader(jinja2.FileSystemLoader):
             template_dirs = self.searchpath
         current_site = get_current_site()
         if current_site:
-            template_dirs = current_site.get_template_dirs() + list(
-                template_dirs)
+            loader_template_dirs = []
+            for template_dir in current_site.get_template_dirs():
+                loader_template_dirs.append(safe_join(template_dir, 'jinja2'))
+                loader_template_dirs.append(template_dir)
+            template_dirs = loader_template_dirs + list(template_dirs)
         return template_dirs
 
 
