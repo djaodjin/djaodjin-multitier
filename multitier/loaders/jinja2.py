@@ -64,8 +64,9 @@ class Loader(jinja2.FileSystemLoader):
             filename = os.path.join(searchpath, *pieces)
             if os.path.isfile(filename):
                 with open(filename, "rb") as template_file:
-                    contents = template_file.read().decode(self.encoding)
-                digest = hashlib.sha1(contents).hexdigest()
+                    data = template_file.read()
+                    digest = hashlib.sha1(data).hexdigest()
+                    contents = data.decode(self.encoding)
                 break
         if filename is not None and contents is not None:
             def uptodate():
