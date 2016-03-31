@@ -73,7 +73,7 @@ class Loader(jinja2.FileSystemLoader):
                 try:
                     with open(filename, "rb") as template_file:
                         file_digest = hashlib.sha1(
-                            template_file.read().decode(self.encoding))
+                            template_file.read()).hexdigest()
                         return file_digest == digest
                 except OSError:
                     return False

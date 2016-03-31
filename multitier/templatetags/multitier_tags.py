@@ -23,8 +23,6 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from django import template
-from django.contrib.messages.api import get_messages
-from django.forms import Form
 from django.templatetags.static import StaticNode
 
 from ..locals import get_current_site
@@ -74,16 +72,6 @@ def asset(path):
     templates.
     """
     return site_prefixed(path)
-
-
-@register.filter()
-def messages(obj):
-    """
-    Messages to be displayed to the current session.
-    """
-    if isinstance(obj, Form):
-        return obj.non_field_errors()
-    return get_messages(obj)
 
 
 @register.filter()
