@@ -113,9 +113,6 @@ class SiteMiddleware(object):
         except Site.DoesNotExist:
             raise Http404(
                 "%s nor %s could be found." % (host, django_settings.APP_NAME))
-        LOGGER.debug(
-            "multitier: access site '%s' (subdomain: '%s') with prefix '%s'",
-            site, site.subdomain, path_prefix)
         return site, path_prefix
 
 
@@ -128,12 +125,18 @@ class SiteMiddleware(object):
 
         # Dynamically update the db used for auth and saas.
         if site.db_name:
-            LOGGER.debug("multitier: connect to db '%s'", site.db_name)
+            LOGGER.debug(
+                "multitier: access site '%s' (subdomain: '%s')"\
+                " with prefix '%s', connect to db '%s'",
+                site, site.subdomain, path_prefix, site.db_name)
             if not site.db_name in connections.databases:
                 connections.databases[site.db_name] = as_provider_db(
                     site.db_name)
         else:
-            LOGGER.debug("multitier: use 'default' db")
+            LOGGER.debug(
+                "multitier: access site '%s' (subdomain: '%s')"\
+                " with prefix '%s', connect to db 'default'",
+                site, site.subdomain, path_prefix)
 
         # This is where you would typically override ``request.urlconf``
         # based on the ``Site``.
