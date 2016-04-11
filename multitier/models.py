@@ -82,6 +82,14 @@ class Site(models.Model):
     def __unicode__(self): #pylint: disable=super-on-old-class
         return unicode(self.slug)
 
+    def as_base(self):
+        """
+        Returns either the base site or ``self`` if no base exists.
+        """
+        if self.base_id:
+            return self.base
+        return self
+
     @property
     def is_alias(self):
         #pylint:disable=no-member
