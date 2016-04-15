@@ -75,6 +75,7 @@ class Site(models.Model):
         settings.ACCOUNT_MODEL, related_name='sites', null=True)
     is_active = models.BooleanField(default=False)
     is_path_prefix = models.BooleanField(default=False)
+    tag = models.CharField(null=True, max_length=255)
 
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'

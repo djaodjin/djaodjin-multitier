@@ -44,7 +44,7 @@ LOGGER = logging.getLogger(__name__)
 def as_provider_db(db_name):
     """
     Returns a dictionnary that can be used to initialized a database
-    connection to the site (streetside) database.
+    connection to the a site-specific database.
     """
     provider_db = \
         connections.databases[DEFAULT_DB_ALIAS].copy()
