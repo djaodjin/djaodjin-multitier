@@ -75,6 +75,11 @@ def asset(path):
 
 
 @register.filter()
+def host(request):
+    return request.get_host()
+
+
+@register.filter()
 def site_prefixed(path):
     site = get_current_site()
     if site.path_prefix:
