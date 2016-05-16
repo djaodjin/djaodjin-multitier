@@ -92,10 +92,9 @@ class Site(models.Model):
         return self
 
     def as_subdomain(self):
-        site = self.as_base()
-        if site.subdomain:
-            return site.subdomain
-        return site.slug
+        if self.subdomain:
+            return self.subdomain
+        return self.slug
 
     @property
     def is_alias(self):
