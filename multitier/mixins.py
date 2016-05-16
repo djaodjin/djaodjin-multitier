@@ -47,10 +47,10 @@ def build_absolute_uri(request, location='/', site=None, with_scheme=True):
             # of knowing. Use a hardcoded default.
             base_domain = settings.DEFAULT_DOMAIN
         if base_domain == settings.DEFAULT_DOMAIN and not site.is_path_prefix:
-            actual_domain = '%s.%s' % (site.printable_name, base_domain)
+            actual_domain = '%s.%s' % (site.as_subdomain(), base_domain)
         else:
             # In local development, we force use of path prefixes.
-            actual_domain = '%s/%s' % (base_domain, site.printable_name)
+            actual_domain = '%s/%s' % (base_domain, site.as_subdomain())
     result = "%(domain)s%(path)s" % {'domain': actual_domain, 'path': location}
     if with_scheme:
         if request:

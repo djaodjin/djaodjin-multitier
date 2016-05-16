@@ -91,6 +91,12 @@ class Site(models.Model):
             return self.base
         return self
 
+    def as_subdomain(self):
+        site = self.as_base()
+        if site.subdomain:
+            return site.subdomain
+        return site.slug
+
     @property
     def is_alias(self):
         #pylint:disable=no-member
@@ -98,6 +104,8 @@ class Site(models.Model):
 
     @property
     def printable_name(self):
+        if self.account_id:
+            return self.account.printable_name
         if self.subdomain:
             return self.subdomain
         return self.slug
