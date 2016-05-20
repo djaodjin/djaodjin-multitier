@@ -103,8 +103,6 @@ class Site(models.Model):
 
     @property
     def printable_name(self):
-        if self.account_id:
-            return self.account.printable_name
         if self.subdomain:
             return self.subdomain
         return self.slug
