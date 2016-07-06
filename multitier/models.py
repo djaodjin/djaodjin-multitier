@@ -33,7 +33,8 @@ from django.db import models
 from django.utils._os import safe_join
 from django.utils.translation import ugettext_lazy as _
 
-from . import settings, get_site_model
+from . import settings
+from .utils import get_site_model
 
 
 def domain_name_validator(value):

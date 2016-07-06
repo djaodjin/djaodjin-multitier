@@ -24,17 +24,17 @@
 
 from django.shortcuts import get_object_or_404
 
-from . import get_site_model, settings
+from . import settings
 from .compat import get_model_class, import_string
 from .locals import cache_provider_db, get_current_site
-from .models import Site
+from .utils import get_site_model
 
 
 def build_absolute_uri(request, location='/', site=None, with_scheme=True):
     if site is None:
         site = get_current_site()
-    elif not isinstance(site, Site):
-        site = get_object_or_404(Site, slug=site)
+    elif not isinstance(site, get_site_model()):
+        site = get_object_or_404(get_site_model(), slug=site)
     if site.domain:
         actual_domain = site.domain
     else:

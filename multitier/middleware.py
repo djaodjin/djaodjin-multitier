@@ -32,8 +32,7 @@ from django.http import Http404
 from django.utils.translation.trans_real import _active
 from django.utils._os import upath
 
-from . import get_site_model
-from .models import Site
+from .utils import get_site_model
 from .locals import clear_cache, set_current_site
 from .urlresolvers import SiteCode
 
@@ -82,11 +81,11 @@ class SiteMiddleware(object):
                 | Q(subdomain=candidate) | Q(subdomain=django_settings.APP_NAME)
             ).order_by('-pk')
             if not queryset.exists():
-                raise Site.DoesNotExist #pylint: disable=raising-bad-type
+                raise get_site_model().DoesNotExist #pylint: disable=raising-bad-type
             site = queryset.first()
             if site and site.subdomain != path_prefix:
                 path_prefix = ''
-        except Site.DoesNotExist:
+        except get_site_model().DoesNotExist:
             raise Http404(
                 "%s nor %s could be found." % (host, django_settings.APP_NAME))
         return site, path_prefix

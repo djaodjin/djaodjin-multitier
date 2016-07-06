@@ -22,8 +22,23 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""
-PEP 386-compliant version number for the multitier django app.
-"""
+from django.apps import apps as django_apps
+from django.conf import settings as django_settings
+from django.core.exceptions import ImproperlyConfigured
 
-__version__ = '0.1.1-dev'
+def get_site_model():
+    """
+    Returns the ``Site`` model that is active in this Django project.
+    """
+    if hasattr(django_settings, 'MULTITIER_SITE_MODEL'):
+        try:
+            return django_apps.get_model(django_settings.MULTITIER_SITE_MODEL)
+        except ValueError:
+            raise ImproperlyConfigured("MULTITIER_SITE_MODEL must be "\
+                "of the form 'app_label.model_name'")
+        except LookupError:
+            raise ImproperlyConfigured("MULTITIER_SITE_MODEL refers to model"\
+                " '%s' that has not been installed"
+                % django_settings.MULTITIER_SITE_MODEL)
+
+    return django_apps.get_model('multitier.Site')
