@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2016, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -22,13 +22,11 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from django.db import connections
 from django.shortcuts import get_object_or_404
 
 from . import get_site_model, settings
 from .compat import get_model_class, import_string
-from .locals import get_current_site
-from .middleware import as_provider_db
+from .locals import cache_provider_db, get_current_site
 from .models import Site
 
 
@@ -94,8 +92,7 @@ class SiteMixin(AccountMixin):
             else:
                 self._site = get_current_site().db_object
             db_name = self._site.db_name if self._site.db_name else 'default'
-            if not db_name in connections.databases:
-                connections.databases[db_name] = as_provider_db(db_name)
+            cache_provider_db(db_name)
         return self._site
 
     def get_actual_domain(self):

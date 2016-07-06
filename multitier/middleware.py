@@ -27,41 +27,17 @@ import logging, re, os, sys
 import gettext as gettext_module
 
 from django.conf import settings as django_settings
-from django.db import connections
 from django.db.models import Q
-from django.db.utils import DEFAULT_DB_ALIAS
 from django.http import Http404
 from django.utils.translation.trans_real import _active
 from django.utils._os import upath
 
-from . import settings, get_site_model
+from . import get_site_model
 from .models import Site
 from .locals import clear_cache, set_current_site
 from .urlresolvers import SiteCode
 
 LOGGER = logging.getLogger(__name__)
-
-def as_provider_db(db_name):
-    """
-    Returns a dictionnary that can be used to initialized a database
-    connection to the a site-specific database.
-    """
-    provider_db = \
-        connections.databases[DEFAULT_DB_ALIAS].copy()
-    default_db_name = provider_db['NAME']
-    provider_db.update({'NAME':db_name})
-    if provider_db['ENGINE'].endswith('sqlite3'):
-        # HACK to set absolute paths (used in development environments)
-        candidates = [os.path.join(dir_path, db_name + '.sqlite')
-            for dir_path in [os.path.dirname(default_db_name)]
-                       + settings.DEBUG_SQLITE3_PATHS]
-        for candidate_db in candidates:
-            if os.path.exists(candidate_db):
-                provider_db['NAME'] = candidate_db
-                LOGGER.debug("multitier: using database '%s'", candidate_db)
-                return provider_db
-        LOGGER.error("multitier: cannot find db '%s'", db_name)
-    return provider_db
 
 
 class SiteMiddleware(object):
@@ -122,21 +98,6 @@ class SiteMiddleware(object):
         """
         clear_cache()
         site, path_prefix = self.as_candidate_site(request)
-
-        # Dynamically update the db used for auth and saas.
-        if site.db_name:
-            LOGGER.debug(
-                "multitier: access site '%s' (subdomain: '%s')"\
-                " with prefix '%s', connect to db '%s'",
-                site, site.subdomain, path_prefix, site.db_name)
-            if not site.db_name in connections.databases:
-                connections.databases[site.db_name] = as_provider_db(
-                    site.db_name)
-        else:
-            LOGGER.debug(
-                "multitier: access site '%s' (subdomain: '%s')"\
-                " with prefix '%s', connect to db 'default'",
-                site, site.subdomain, path_prefix)
 
         # This is where you would typically override ``request.urlconf``
         # based on the ``Site``.

@@ -22,8 +22,11 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import logging, os
 
 from django.core.urlresolvers import reverse
+from django.db import connections
+from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.encoding import iri_to_uri
 
 from . import settings
@@ -35,6 +38,8 @@ except ImportError:
     from django.utils._threading_local import local
 
 _thread_locals = local() #pylint: disable=invalid-name
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CurrentSite(object):
@@ -64,6 +69,36 @@ class CurrentSite(object):
             'scheme': self.default_scheme, 'host': host, 'path': path})
 
 
+def as_provider_db(db_name):
+    """
+    Returns a dictionnary that can be used to initialized a database
+    connection to the a site-specific database.
+    """
+    provider_db = connections.databases[DEFAULT_DB_ALIAS].copy()
+    default_db_name = provider_db['NAME']
+    provider_db.update({'NAME':db_name})
+    if provider_db['ENGINE'].endswith('sqlite3'):
+        # HACK to set absolute paths (used in development environments)
+        candidates = [os.path.join(dir_path, db_name + '.sqlite')
+            for dir_path in [os.path.dirname(default_db_name)]
+                       + settings.DEBUG_SQLITE3_PATHS]
+        for candidate_db in candidates:
+            if os.path.exists(candidate_db):
+                provider_db['NAME'] = candidate_db
+                LOGGER.debug("multitier: using database '%s'", candidate_db)
+                return provider_db
+        LOGGER.error("multitier: cannot find db '%s'", db_name)
+    return provider_db
+
+
+def cache_provider_db(db_name):
+    if not db_name:
+        return None
+    if not db_name in connections.databases:
+        connections.databases[db_name] = as_provider_db(db_name)
+    return connections.databases[db_name]
+
+
 def clear_cache():
     try:
         del _thread_locals.site
@@ -90,6 +125,20 @@ def get_path_prefix():
 
 def set_current_site(site, path_prefix,
         default_scheme='http', default_host='localhost', request=None):
+    # Dynamically update the db used for auth and saas.
+    if site.db_name:
+        LOGGER.debug(
+            "multitier: access site '%s' (subdomain: '%s')"\
+            " with prefix '%s', connect to db '%s'",
+            site, site.subdomain, path_prefix, site.db_name)
+        if not site.db_name in connections.databases:
+            cache_provider_db(site.db_name)
+    else:
+        LOGGER.debug(
+            "multitier: access site '%s' (subdomain: '%s')"\
+            " with prefix '%s', connect to db 'default'",
+            site, site.subdomain, path_prefix)
+
     prev_site = None
     prev_path_prefix = None
     if (hasattr(_thread_locals, 'site')
@@ -101,6 +150,7 @@ def set_current_site(site, path_prefix,
     else:
         _thread_locals.site = CurrentSite(site, path_prefix,
             default_scheme=default_scheme, default_host=default_host)
+
     if request is not None:
         request.site = _thread_locals.site
         request.urls = {}
