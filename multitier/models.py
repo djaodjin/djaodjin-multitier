@@ -28,6 +28,7 @@ Models for the multi-tier application.
 
 import string
 
+from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils._os import safe_join
@@ -51,12 +52,13 @@ def domain_name_validator(value):
             code='invalid',
         )
 
-
 class Site(models.Model):
 
     domain = models.CharField(null=True, blank=True, max_length=100,
         help_text='fully qualified domain name at which the site is available',
-        validators=[domain_name_validator])
+        validators=[domain_name_validator, RegexValidator(
+            r'[a-z0-9][a-z0-9\-]*(\.[a-z0-9\-])+',
+            "Enter a valid 'domain', ex: example.com", 'invalid')])
     slug = models.SlugField(unique=True,
         help_text="unique identifier for the site")
     subdomain = models.SlugField(
