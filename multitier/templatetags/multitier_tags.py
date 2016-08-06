@@ -81,9 +81,18 @@ def host(request):
 
 @register.filter()
 def site_prefixed(path):
+    if path is None:
+        path = ''
     site = get_current_site()
     if site.path_prefix:
-        path_prefix = '/%s/' % site.path_prefix
+        path_prefix = '/%s' % site.path_prefix
     else:
-        path_prefix = '/'
+        path_prefix = ''
+    if path:
+        # We have an actual path instead of generating a prefix that will
+        # be placed in front of static urls (ie. {{'pricing'|site_prefixed}}
+        # insted of {{''|site_prefixed}}{{ASSET_URL}}).
+        path_prefix += '/'
+        if path.startswith('/'):
+            path = path[1:]
     return urljoin(path_prefix, path)
