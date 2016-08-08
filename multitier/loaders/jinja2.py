@@ -63,11 +63,14 @@ class Loader(jinja2.FileSystemLoader):
         for searchpath in self.get_template_dirs():
             filename = os.path.join(searchpath, *pieces)
             if os.path.isfile(filename):
+                LOGGER.debug("found template %s", filename)
                 with open(filename, "rb") as template_file:
                     data = template_file.read()
                     digest = hashlib.sha1(data).hexdigest()
                     contents = data.decode(self.encoding)
                 break
+            else:
+                LOGGER.debug("tried template %s", filename)
         if filename is not None and contents is not None:
             def uptodate():
                 try:
