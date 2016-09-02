@@ -82,6 +82,10 @@ def as_provider_db(db_name):
         candidates = [os.path.join(dir_path, db_name + '.sqlite')
             for dir_path in [os.path.dirname(default_db_name)]
                        + settings.DEBUG_SQLITE3_PATHS]
+        # When the sqlite database file does not yet exists, we want
+        # to default to a db file in the same directory as default,
+        # not a file in the current directory.
+        provider_db['NAME'] = candidates[0]
         for candidate_db in candidates:
             if os.path.exists(candidate_db):
                 provider_db['NAME'] = candidate_db
