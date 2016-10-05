@@ -54,40 +54,40 @@ class SiteMiddleware(object):
         path_prefix = ''
         host = request.get_host().split(':')[0].lower()
         if len(django_settings.ALLOWED_HOSTS) > 0:
-            domain = django_settings.ALLOWED_HOSTS[0]
-            if domain.startswith('.'):
-                domain = domain[1:]
-            look = re.match(r'^((?P<subdomain>\S+)\.)?%s(?::.*)?$' % domain,
-                host)
-            if look and look.group('subdomain'):
-                candidate = look.group('subdomain')
-#                LOGGER.debug("multitier: found subdomain candidate: %s",
-#                    candidate)
-        look = re.match(r'^/(?P<path_prefix>[a-zA-Z0-9\-]+).*', request.path)
-        # no trailing '/' is OK here.
-        if look:
-            path_prefix = look.group('path_prefix')
-        if not candidate:
-            # It is either a subdomain or a path_prefix. Trying both
-            # match one after the other will always override the candidate.
-            if path_prefix:
-                candidate = path_prefix
-#                LOGGER.debug("multitier: found path_prefix candidate: '%s'",
-#                    candidate)
-            else:
-                candidate = django_settings.APP_NAME
+            app_domain = django_settings.ALLOWED_HOSTS[0]
+        else:
+            app_domain = 'localhost'
+        if app_domain.startswith('.'):
+            app_domain = app_domain[1:]
+        look = re.match(r'^((?P<subdomain>\S+)\.)?%s(?::.*)?$' % app_domain,
+            host)
+        if look and look.group('subdomain'):
+            candidate = look.group('subdomain')
+        if host == app_domain and not candidate:
+            look = re.match(r'^/(?P<path_prefix>[a-zA-Z0-9\-]+).*',
+                request.path)
+            # no trailing '/' is OK here.
+            if look:
+                path_prefix = look.group('path_prefix')
+                # It is either a subdomain or a path_prefix. Trying both
+                # match one after the other will always override the candidate.
+                if path_prefix:
+                    candidate = path_prefix
         try:
-            queryset = get_site_model().objects.filter(Q(domain=host)
-                | Q(subdomain=candidate) | Q(subdomain=django_settings.APP_NAME)
-            ).order_by('-pk')
-            if not queryset.exists():
-                raise get_site_model().DoesNotExist #pylint: disable=raising-bad-type
+            flt = Q(domain=host)
+            if candidate:
+                flt = flt | Q(subdomain=candidate)
+            queryset = get_site_model().objects.filter(flt).order_by(
+                '-domain', '-pk')
             site = queryset.first()
-            if site and site.subdomain != path_prefix:
+            if site is None:
+                #pylint: disable=raising-bad-type
+                raise get_site_model().DoesNotExist
+            elif site.subdomain != path_prefix:
                 path_prefix = ''
         except get_site_model().DoesNotExist:
             raise Http404(
-                "%s nor %s could be found." % (host, django_settings.APP_NAME))
+                "'%s' nor subdomain '%s' could be found." % (host, candidate))
         return site, path_prefix
 
 
