@@ -52,31 +52,32 @@ class SiteMiddleware(object):
         site = None
         candidate = None
         path_prefix = ''
+        app_domain = 'localhost'
         host = request.get_host().split(':')[0].lower()
         if len(django_settings.ALLOWED_HOSTS) > 0:
             app_domain = django_settings.ALLOWED_HOSTS[0]
-        else:
-            app_domain = 'localhost'
-        if app_domain.startswith('.'):
-            app_domain = app_domain[1:]
-        look = re.match(r'^((?P<subdomain>\S+)\.)?%s(?::.*)?$' % app_domain,
-            host)
-        if look and look.group('subdomain'):
-            candidate = look.group('subdomain')
-        if host == app_domain and not candidate:
-            look = re.match(r'^/(?P<path_prefix>[a-zA-Z0-9\-]+).*',
-                request.path)
-            # no trailing '/' is OK here.
-            if look:
-                path_prefix = look.group('path_prefix')
-                # It is either a subdomain or a path_prefix. Trying both
-                # match one after the other will always override the candidate.
-                if path_prefix:
-                    candidate = path_prefix
+            if app_domain.startswith('.'):
+                app_domain = app_domain[1:]
+            look = re.match(r'^((?P<subdomain>\S+)\.)?%s(?::.*)?$' % app_domain,
+                host)
+            if look and look.group('subdomain'):
+                candidate = look.group('subdomain')
+            if host == app_domain and not candidate:
+                look = re.match(r'^/(?P<path_prefix>[a-zA-Z0-9\-]+).*',
+                    request.path)
+                # no trailing '/' is OK here.
+                if look:
+                    path_prefix = look.group('path_prefix')
+                    # It is either a subdomain or a path_prefix. Trying both
+                    # match one after the other will override the candidate.
+                    if path_prefix:
+                        candidate = path_prefix
         try:
             flt = Q(domain=host)
             if candidate:
                 flt = flt | Q(subdomain=candidate)
+            if host == app_domain:
+                flt = flt | Q(subdomain=django_settings.APP_NAME)
             queryset = get_site_model().objects.filter(flt).order_by(
                 '-domain', '-pk')
             site = queryset.first()
