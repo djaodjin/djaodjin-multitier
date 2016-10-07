@@ -138,4 +138,4 @@ def get_site_or_none(subdomain):
     If no Site could be found, then returns ``None``.
     """
     return get_site_model().objects.filter(
-        subdomain=subdomain).order_by('-domain', '-pk').first()
+        subdomain=subdomain).order_by('domain', '-pk').first()
