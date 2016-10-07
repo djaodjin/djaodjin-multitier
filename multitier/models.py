@@ -131,15 +131,11 @@ class Site(models.Model):
                     for theme in self.get_templates()]
 
 
-def get_site_or_none(slug):
+def get_site_or_none(subdomain):
     """
-    Returns a ``Site`` instance based on its slug. If none could be found,
-    then returns ``None``.
+    Returns a ``Site`` instance based on its subdomain while prefering
+    ``Site`` with an explicit domain.
+    If no Site could be found, then returns ``None``.
     """
-    #pylint:disable=invalid-name
-    SiteModel = get_site_model()
-    try:
-        return SiteModel.objects.get(slug=slug)
-    except SiteModel.DoesNotExist:
-        pass
-    return None
+    return get_site_model().objects.filter(
+        subdomain=subdomain).order_by('-domain', '-pk').first()
