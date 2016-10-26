@@ -38,17 +38,21 @@ def build_absolute_uri(request, location='/', site=None, with_scheme=True):
     if site.domain:
         actual_domain = site.domain
     else:
+        base_domain = settings.DEFAULT_DOMAIN
+        force_path_prefix = False
         if request:
-            base_domain = request.get_host()
-        else:
-            # Without a request or an explicit domain, we just have no way
-            # of knowing. Use a hardcoded default.
-            base_domain = settings.DEFAULT_DOMAIN
-        if base_domain == settings.DEFAULT_DOMAIN and not site.is_path_prefix:
+            hostname = request.get_host()
+            if hostname.startswith('localhost'):
+                base_domain = hostname
+                force_path_prefix = True
+        if not (force_path_prefix or site.is_path_prefix):
             actual_domain = '%s.%s' % (site.as_subdomain(), base_domain)
-        else:
+        elif not location.startswith('/%s/' % site.as_subdomain()):
             # In local development, we force use of path prefixes.
+            # At the same time we don't want to double the path prefix
+            # when it was already added by ``reverse()``.
             actual_domain = '%s/%s' % (base_domain, site.as_subdomain())
+
     result = "%(domain)s%(path)s" % {'domain': actual_domain, 'path': location}
     if with_scheme:
         if request:
