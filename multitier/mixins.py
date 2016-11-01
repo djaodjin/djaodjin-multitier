@@ -35,6 +35,7 @@ def build_absolute_uri(request, location='/', site=None, with_scheme=True):
         site = get_current_site()
     elif not isinstance(site, get_site_model()):
         site = get_object_or_404(get_site_model(), slug=site)
+    actual_domain = ""
     if site.domain:
         actual_domain = site.domain
     else:
