@@ -75,11 +75,6 @@ def asset(path):
 
 
 @register.filter()
-def host(request):
-    return request.get_host()
-
-
-@register.filter()
 def site_prefixed(path):
     if path is None:
         path = ''
