@@ -33,7 +33,7 @@ from django.utils.translation.trans_real import _active
 from django.utils._os import upath
 
 from .utils import get_site_model
-from .locals import clear_cache, set_current_site
+from .thread_locals import clear_cache, set_current_site
 from .urlresolvers import SiteCode
 
 LOGGER = logging.getLogger(__name__)
@@ -87,6 +87,8 @@ class SiteMiddleware(object):
             elif site.subdomain != path_prefix:
                 path_prefix = ''
         except get_site_model().DoesNotExist:
+            LOGGER.exception(
+                "'%s' nor subdomain '%s' could be found.", host, candidate)
             raise Http404(
                 "'%s' nor subdomain '%s' could be found." % (host, candidate))
         return site, path_prefix

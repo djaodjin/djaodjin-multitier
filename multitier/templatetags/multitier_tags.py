@@ -25,7 +25,7 @@
 from django import template
 from django.templatetags.static import StaticNode
 
-from ..locals import get_current_site
+from ..thread_locals import get_current_site
 
 #pylint:disable=no-name-in-module,import-error
 from django.utils.six.moves.urllib.parse import urljoin

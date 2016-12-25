@@ -24,7 +24,7 @@
 
 from django.conf import settings
 
-from .locals import get_current_site
+from .thread_locals import get_current_site
 
 
 def site(request): #pylint: disable=unused-argument

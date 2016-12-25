@@ -28,7 +28,7 @@ import hashlib, logging, os
 from django.utils._os import safe_join
 import jinja2
 
-from multitier.locals import get_current_site
+from multitier.thread_locals import get_current_site
 
 
 LOGGER = logging.getLogger(__name__)

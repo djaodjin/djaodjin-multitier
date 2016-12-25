@@ -22,12 +22,17 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import logging
+
 from django.conf import settings as django_settings
 from django.db import DEFAULT_DB_ALIAS
 
 from . import settings
 from .compat import get_app_model_class
-from .locals import get_current_site
+from .thread_locals import get_current_site
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class SiteRouter(object):
@@ -61,10 +66,12 @@ class SiteRouter(object):
         """
         Attempts to read ``apps`` models go to the current provider.
         """
+        result = None
         if self.includes(model):
             result = self.provider_db()
-            return result
-        return None
+        LOGGER.debug("db_for_read(%s) is '%s'", model,
+            (result if result is not None else DEFAULT_DB_ALIAS))
+        return result
 
     def db_for_write(self, model, **hints): #pylint: disable=unused-argument
         """

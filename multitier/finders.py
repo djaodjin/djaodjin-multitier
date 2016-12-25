@@ -31,7 +31,7 @@ from django.contrib.staticfiles.finders import (
 from django.core.files.storage import FileSystemStorage
 from django.contrib.staticfiles import utils
 
-from .locals import get_current_site
+from .thread_locals import get_current_site
 from .settings import STATICFILES_DIRS
 
 #pylint:disable=no-member

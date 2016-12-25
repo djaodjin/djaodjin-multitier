@@ -26,7 +26,7 @@ from django.shortcuts import get_object_or_404
 
 from . import settings
 from .compat import get_model_class, import_string
-from .locals import cache_provider_db, get_current_site
+from .thread_locals import cache_provider_db, get_current_site
 from .utils import get_site_model
 
 

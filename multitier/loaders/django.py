@@ -30,7 +30,7 @@ from django.conf import settings
 from django.template.loaders.filesystem import Loader as FilesystemLoader
 from django.utils._os import safe_join
 
-from multitier.locals import get_current_site
+from multitier.thread_locals import get_current_site
 from multitier.compat import Origin
 
 
