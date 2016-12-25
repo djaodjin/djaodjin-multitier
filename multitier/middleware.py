@@ -87,10 +87,13 @@ class SiteMiddleware(object):
             elif site.subdomain != path_prefix:
                 path_prefix = ''
         except get_site_model().DoesNotExist:
-            LOGGER.exception(
-                "'%s' nor subdomain '%s' could be found.", host, candidate)
-            raise Http404(
-                "'%s' nor subdomain '%s' could be found." % (host, candidate))
+            if candidate is not None:
+                msg = "'%s' nor subdomain '%s' could be found." % (
+                    host, candidate)
+            else:
+                msg = "'%s' could not be found." % str(host)
+            LOGGER.exception(msg, extra={'request': request})
+            raise Http404(msg)
         return site, path_prefix
 
 
