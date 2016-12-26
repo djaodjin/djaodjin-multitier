@@ -92,7 +92,7 @@ class SiteMiddleware(object):
                     host, candidate)
             else:
                 msg = "'%s' could not be found." % str(host)
-            LOGGER.exception(msg, extra={'request': request})
+            LOGGER.debug(msg, extra={'request': request})
             raise Http404(msg)
         return site, path_prefix
 
