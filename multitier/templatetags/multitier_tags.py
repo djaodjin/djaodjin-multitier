@@ -25,6 +25,7 @@
 from django import template
 from django.templatetags.static import StaticNode
 
+from ..mixins import build_absolute_uri
 from ..thread_locals import get_current_site
 
 #pylint:disable=no-name-in-module,import-error
@@ -60,6 +61,11 @@ def do_static(parser, token):
 
     """
     return MultitierStaticNode.handle_token(parser, token)
+
+
+@register.filter()
+def absolute_uri(request):
+    return build_absolute_uri(request)
 
 
 @register.filter()
