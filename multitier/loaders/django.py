@@ -1,4 +1,4 @@
-# Copyright (c) 2016, Djaodjin Inc.
+# Copyright (c) 2017, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -80,7 +80,7 @@ class Loader(FilesystemLoader):
                     # inside another one, so this isn't fatal).
                     pass
 
-        except AttributeError, attr_err:
+        except AttributeError as attr_err:
             # Something bad appended. We don't even have a request.
             # The middleware might be misconfigured.
             LOGGER.warning(

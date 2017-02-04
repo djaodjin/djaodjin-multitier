@@ -27,7 +27,7 @@ import logging, os
 from django.core.urlresolvers import reverse
 from django.db import connections
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.encoding import iri_to_uri
+from django.utils.encoding import iri_to_uri, python_2_unicode_compatible
 
 from . import settings
 
@@ -42,6 +42,7 @@ _thread_locals = local() #pylint: disable=invalid-name
 LOGGER = logging.getLogger(__name__)
 
 
+@python_2_unicode_compatible
 class CurrentSite(object):
 
     def __init__(self, site, path_prefix,
@@ -55,10 +56,7 @@ class CurrentSite(object):
         return getattr(self.db_object, name)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    def __unicode__(self):
-        return self.db_object.__unicode__()
+        return self.db_object.__str__()
 
     def as_absolute_uri(self, path=''):
         if self.db_object.domain:

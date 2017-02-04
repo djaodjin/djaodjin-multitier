@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2017, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils._os import safe_join
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from . import settings
@@ -52,6 +53,7 @@ def domain_name_validator(value):
             code='invalid',
         )
 
+@python_2_unicode_compatible
 class Site(models.Model):
 
     domain = models.CharField(null=True, blank=True, max_length=100,
@@ -83,8 +85,8 @@ class Site(models.Model):
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
 
-    def __unicode__(self): #pylint: disable=super-on-old-class
-        return unicode(self.slug)
+    def __str__(self): #pylint: disable=super-on-old-class
+        return self.slug
 
     def as_base(self):
         """

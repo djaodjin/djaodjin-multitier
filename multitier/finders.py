@@ -1,4 +1,4 @@
-# Copyright (c) 2016, Djaodjin Inc.
+# Copyright (c) 2017, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -110,7 +110,7 @@ class MultitierFileSystemFinder(FileSystemFinder):
             try:
                 for path in utils.get_files(storage, ignore_patterns):
                     yield path, storage
-            except OSError, err:
+            except OSError as err:
                 if err.errno == errno.ENOENT:
                     # suppress "No such file or directory" error because
                     # non-existent directories are considered optional search
