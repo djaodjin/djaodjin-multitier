@@ -1,4 +1,4 @@
-# Copyright (c) 2016, Djaodjin Inc.
+# Copyright (c) 2017, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,8 @@ class SiteMixin(AccountMixin):
     """
     site_url_kwarg = 'site'
 
-    def get_site(self):
+    @property
+    def site(self):
         #pylint: disable=access-member-before-definition
         if not hasattr(self, '_site') or self._site is None:
             if self.site_url_kwarg in self.kwargs:
@@ -102,7 +103,7 @@ class SiteMixin(AccountMixin):
 
     def get_actual_domain(self):
         return build_absolute_uri(
-            self.request, site=self.get_site(), with_scheme=False)
+            self.request, site=self.site, with_scheme=False)
 
     def get_absolute_uri(self, location=''):
-        return build_absolute_uri(self.request, location, site=self.get_site())
+        return build_absolute_uri(self.request, location, site=self.site)
