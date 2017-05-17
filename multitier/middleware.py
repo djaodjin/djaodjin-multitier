@@ -32,6 +32,7 @@ from django.http import Http404
 from django.utils.translation.trans_real import _active
 from django.utils._os import upath
 
+from . import settings
 from .utils import get_site_model
 from .thread_locals import clear_cache, set_current_site
 from .urlresolvers import SiteCode
@@ -77,7 +78,7 @@ class SiteMiddleware(object):
             if candidate:
                 flt = flt | Q(subdomain=candidate)
             if host == app_domain:
-                flt = flt | Q(subdomain=django_settings.APP_NAME)
+                flt = flt | Q(subdomain=settings.DEFAULT_SITE)
             queryset = get_site_model().objects.filter(flt).order_by(
                 '-domain', '-pk')
             site = queryset.first()
