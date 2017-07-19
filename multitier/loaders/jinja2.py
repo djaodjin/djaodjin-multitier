@@ -69,8 +69,8 @@ class Loader(jinja2.FileSystemLoader):
                     digest = hashlib.sha1(data).hexdigest()
                     contents = data.decode(self.encoding)
                 break
-            else:
-                LOGGER.debug("tried template %s", filename)
+#            else:
+#                LOGGER.debug("tried template %s", filename)
         if filename is not None and contents is not None:
             def uptodate():
                 try:

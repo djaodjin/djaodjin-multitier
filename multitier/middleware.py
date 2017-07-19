@@ -89,8 +89,8 @@ class SiteMiddleware(object):
                 path_prefix = ''
         except get_site_model().DoesNotExist:
             if candidate is not None:
-                msg = "'%s' nor subdomain '%s' could be found." % (
-                    host, candidate)
+                msg = "'%s' nor subdomain '%s%s' could be found." % (
+                    host, candidate, django_settings.ALLOWED_HOSTS[0])
             else:
                 msg = "'%s' could not be found." % str(host)
             LOGGER.debug(msg, extra={'request': request})
