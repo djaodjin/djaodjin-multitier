@@ -55,7 +55,7 @@ class SiteMiddleware(object):
         path_prefix = ''
         app_domain = 'localhost'
         host = request.get_host().split(':')[0].lower()
-        if len(django_settings.ALLOWED_HOSTS) > 0:
+        if django_settings.ALLOWED_HOSTS:
             app_domain = django_settings.ALLOWED_HOSTS[0]
             if app_domain.startswith('.'):
                 app_domain = app_domain[1:]
@@ -76,16 +76,16 @@ class SiteMiddleware(object):
         try:
             flt = Q(domain=host)
             if candidate:
-                flt = flt | Q(subdomain=candidate)
+                flt = flt | Q(slug=candidate)
             if host == app_domain:
-                flt = flt | Q(subdomain=settings.DEFAULT_SITE)
+                flt = flt | Q(slug=settings.DEFAULT_SITE)
             queryset = get_site_model().objects.filter(flt).order_by(
                 '-domain', '-pk')
             site = queryset.first()
             if site is None:
                 #pylint: disable=raising-bad-type
                 raise get_site_model().DoesNotExist
-            elif site.subdomain != path_prefix:
+            elif site.slug != path_prefix:
                 path_prefix = ''
         except get_site_model().DoesNotExist:
             if candidate is not None:

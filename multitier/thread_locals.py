@@ -130,16 +130,14 @@ def set_current_site(site, path_prefix,
     # Dynamically update the db used for auth and saas.
     if site.db_name:
         LOGGER.debug(
-            "multitier: access site '%s' (subdomain: '%s')"\
-            " with prefix '%s', connect to db '%s'",
-            site, site.subdomain, path_prefix, site.db_name)
+            "multitier: access site '%s' with prefix '%s', connect to db '%s'",
+            site, path_prefix, site.db_name)
         if not site.db_name in connections.databases:
             cache_provider_db(site.db_name)
     else:
         LOGGER.debug(
-            "multitier: access site '%s' (subdomain: '%s')"\
-            " with prefix '%s', connect to db 'default'",
-            site, site.subdomain, path_prefix)
+            "multitier: access site '%s' with prefix '%s',"\
+            " connect to db 'default'", site, path_prefix)
 
     prev_site = None
     prev_path_prefix = None

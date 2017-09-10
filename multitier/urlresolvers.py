@@ -94,4 +94,3 @@ def site_patterns(*args):
     """
     pattern_list = args
     return [SiteRegexURLResolver(pattern_list)]
-

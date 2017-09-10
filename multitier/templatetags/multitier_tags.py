@@ -46,7 +46,7 @@ class MultitierStaticNode(StaticNode):
 def do_static(parser, token):
     """
     A template tag that returns the URL to a file
-    using a multitier ``Site.theme``
+    using a ``multitier.Site``
 
     Usage::
 

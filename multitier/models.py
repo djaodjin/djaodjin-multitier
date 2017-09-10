@@ -28,7 +28,7 @@ Models for the multi-tier application.
 
 import string
 
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, URLValidator
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils._os import safe_join
@@ -37,6 +37,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from . import settings
 from .utils import get_site_model
+
+
+SUBDOMAIN_RE = r'^[-a-zA-Z0-9_]+\Z'
+SUBDOMAIN_SLUG = RegexValidator(
+    SUBDOMAIN_RE,
+    _("Enter a valid 'slug' consisting of letters, numbers or hyphens."),
+    'invalid'
+)
 
 
 def domain_name_validator(value):
@@ -56,30 +64,31 @@ def domain_name_validator(value):
 @python_2_unicode_compatible
 class Site(models.Model):
 
+    # Since most DNS provider limit subdomain length to 25 characters,
+    # we do here too.
+    slug = models.SlugField(unique=True, max_length=25,
+        validators=[SUBDOMAIN_SLUG],
+        help_text="unique identifier for the site (also serves as subdomain)")
     domain = models.CharField(null=True, blank=True, max_length=100,
         help_text='fully qualified domain name at which the site is available',
         validators=[domain_name_validator, RegexValidator(
-            r'[a-z0-9][a-z0-9\-]*(\.[a-z0-9\-])+',
+            URLValidator.host_re,
             "Enter a valid 'domain', ex: example.com", 'invalid')])
-    slug = models.SlugField(unique=True,
-        help_text="unique identifier for the site")
-    subdomain = models.SlugField(
-        # Not unique since it will always be '' for base.
-        help_text="subdomain of the platform on which the site is available")
+    account = models.ForeignKey(
+        settings.ACCOUNT_MODEL, related_name='sites', null=True)
+
     db_name = models.SlugField(null=True,
        help_text='name of database to connect to for the site')
     db_host = models.CharField(max_length=255, null=True,
        help_text='host to connect to to access the database')
     db_port = models.IntegerField(null=True,
        help_text='port to connect to to access the database')
-    theme = models.SlugField(null=True,
-       help_text='alternative search name for finding templates')
+
     base = models.ForeignKey('multitier.Site', null=True,
        help_text='The site is a derivative of this parent.')
-    account = models.ForeignKey(
-        settings.ACCOUNT_MODEL, related_name='sites', null=True)
     is_active = models.BooleanField(default=False)
-    is_path_prefix = models.BooleanField(default=False)
+    is_path_prefix = models.BooleanField(default=False,
+        help_text="use slug as a prefix for URL paths instead of domain field.")
     tag = models.CharField(null=True, max_length=255)
 
     class Meta:
@@ -97,32 +106,17 @@ class Site(models.Model):
         return self
 
     def as_subdomain(self):
-        if self.subdomain:
-            return self.subdomain
         return self.slug
 
     @property
-    def is_alias(self):
-        #pylint:disable=no-member
-        return self.base_id and self.subdomain == self.base.slug
-
-    @property
     def printable_name(self):
-        if self.subdomain:
-            return self.subdomain
         return self.slug
 
     def get_templates(self):
         """
         Returns a list of candidate themes.
         """
-        if self.theme:
-            result = [self.theme, self.slug]
-        else:
-            result = [self.slug]
-        if self.subdomain:
-            result += [self.subdomain]
-        return result
+        return [self.slug]
 
     def get_template_dirs(self):
         """
@@ -140,4 +134,4 @@ def get_site_or_none(subdomain):
     If no Site could be found, then returns ``None``.
     """
     return get_site_model().objects.filter(
-        subdomain=subdomain).order_by('domain', '-pk').first()
+        slug=subdomain).order_by('domain', '-pk').first()
