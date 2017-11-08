@@ -85,7 +85,7 @@ def site_prefixed(path):
     if path is None:
         path = ''
     site = get_current_site()
-    if site.path_prefix:
+    if site and site.path_prefix:
         path_prefix = '/%s' % site.path_prefix
     else:
         path_prefix = ''
