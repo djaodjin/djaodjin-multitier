@@ -33,26 +33,35 @@ from .utils import get_site_model
 def build_absolute_uri(request, location='/', site=None, with_scheme=True):
     if site is None:
         site = get_current_site()
-    elif not isinstance(site, get_site_model()):
-        site = get_object_or_404(get_site_model(), slug=site)
-    actual_domain = ""
-    if site.domain:
-        actual_domain = site.domain
     else:
-        base_domain = settings.DEFAULT_DOMAIN
+        site_model = get_site_model()
+        if not isinstance(site, site_model):
+            try:
+                site = site_model.objects.get(slug=site)
+            except site_model.DoesNotExist:
+                site = None
+    actual_domain = ""
+    if site and site.domain:
+        actual_domain = site.domain
+    elif site:
+        subdomain = site.as_subdomain()
+        is_path_prefix = site.is_path_prefix
         force_path_prefix = False
+        base_domain = settings.DEFAULT_DOMAIN
         if request:
             hostname = request.get_host()
             if hostname.startswith('localhost'):
                 base_domain = hostname
                 force_path_prefix = True
-        if not (force_path_prefix or site.is_path_prefix):
-            actual_domain = '%s.%s' % (site.as_subdomain(), base_domain)
-        elif not location.startswith('/%s/' % site.as_subdomain()):
+        if not (force_path_prefix or is_path_prefix):
+            actual_domain = '%s.%s' % (subdomain, base_domain)
+        elif not location.startswith('/%s/' % subdomain):
             # In local development, we force use of path prefixes.
             # At the same time we don't want to double the path prefix
             # when it was already added by ``reverse()``.
-            actual_domain = '%s/%s' % (base_domain, site.as_subdomain())
+            actual_domain = '%s/%s' % (base_domain, subdomain)
+    else:
+        actual_domain = settings.DEFAULT_DOMAIN
 
     result = "%(domain)s%(path)s" % {'domain': actual_domain, 'path': location}
     if with_scheme:
