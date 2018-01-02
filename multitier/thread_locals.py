@@ -67,7 +67,7 @@ class CurrentSite(object):
             'scheme': self.default_scheme, 'host': host, 'path': path})
 
 
-def as_provider_db(db_name):
+def as_provider_db(db_name, db_host=None, db_port=None):
     """
     Returns a dictionnary that can be used to initialized a database
     connection to the a site-specific database.
@@ -75,6 +75,10 @@ def as_provider_db(db_name):
     provider_db = connections.databases[DEFAULT_DB_ALIAS].copy()
     default_db_name = provider_db['NAME']
     provider_db.update({'NAME':db_name})
+    if db_host:
+        provider_db.update({'HOST':db_host})
+    if db_port:
+        provider_db.update({'PORT':db_port})
     if provider_db['ENGINE'].endswith('sqlite3'):
         # HACK to set absolute paths (used in development environments)
         candidates = [os.path.join(dir_path, db_name + '.sqlite')
@@ -93,11 +97,12 @@ def as_provider_db(db_name):
     return provider_db
 
 
-def cache_provider_db(db_name):
+def cache_provider_db(db_name, db_host=None, db_port=None):
     if not db_name:
         return None
     if not db_name in connections.databases:
-        connections.databases[db_name] = as_provider_db(db_name)
+        connections.databases[db_name] = as_provider_db(db_name,
+            db_host=db_host, db_port=db_port)
     return connections.databases[db_name]
 
 
@@ -133,7 +138,8 @@ def set_current_site(site, path_prefix,
             "multitier: access site '%s' with prefix '%s', connect to db '%s'",
             site, path_prefix, site.db_name)
         if not site.db_name in connections.databases:
-            cache_provider_db(site.db_name)
+            cache_provider_db(site.db_name,
+                db_host=site.db_host, db_port=site.db_port)
     else:
         LOGGER.debug(
             "multitier: access site '%s' with prefix '%s',"\

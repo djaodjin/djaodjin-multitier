@@ -60,6 +60,8 @@ def build_absolute_uri(request, location='/', site=None, with_scheme=True):
             # At the same time we don't want to double the path prefix
             # when it was already added by ``reverse()``.
             actual_domain = '%s/%s' % (base_domain, subdomain)
+    elif request:
+        actual_domain = request.get_host()
     else:
         actual_domain = settings.DEFAULT_DOMAIN
 
@@ -106,8 +108,9 @@ class SiteMixin(AccountMixin):
                     account=self.account)
             else:
                 self._site = get_current_site().db_object
-            db_name = self._site.db_name if self._site.db_name else 'default'
-            cache_provider_db(db_name)
+            cache_provider_db(
+                self._site.db_name if self._site.db_name else 'default',
+                db_host=self._site.db_host, db_port=self._site.db_port)
         return self._site
 
     def get_actual_domain(self):
