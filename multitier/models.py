@@ -75,17 +75,19 @@ class Site(models.Model):
             URLValidator.host_re,
             "Enter a valid 'domain', ex: example.com", 'invalid')])
     account = models.ForeignKey(
-        settings.ACCOUNT_MODEL, related_name='sites', null=True)
+        settings.ACCOUNT_MODEL, null=True, on_delete=models.CASCADE,
+        related_name='sites')
 
     db_name = models.SlugField(null=True,
-       help_text='name of database to connect to for the site')
+        help_text='name of database to connect to for the site')
     db_host = models.CharField(max_length=255, null=True,
-       help_text='host to connect to to access the database')
+        help_text='host to connect to to access the database')
     db_port = models.IntegerField(null=True,
-       help_text='port to connect to to access the database')
+        help_text='port to connect to to access the database')
 
-    base = models.ForeignKey('multitier.Site', null=True,
-       help_text='The site is a derivative of this parent.')
+    base = models.ForeignKey('multitier.Site',
+        null=True, on_delete=models.CASCADE,
+        help_text='The site is a derivative of this parent.')
     is_active = models.BooleanField(default=False)
     is_path_prefix = models.BooleanField(default=False,
         help_text="use slug as a prefix for URL paths instead of domain field.")

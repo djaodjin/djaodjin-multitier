@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Djaodjin Inc.
+# Copyright (c) 2018, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -24,12 +24,12 @@
 
 import logging, os
 
-from django.core.urlresolvers import reverse
 from django.db import connections
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.encoding import iri_to_uri, python_2_unicode_compatible
 
 from . import settings
+from .compat import reverse
 
 try:
     from threading import local

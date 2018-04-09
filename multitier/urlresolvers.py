@@ -25,9 +25,9 @@
 import re
 
 from django import VERSION as DJANGO_VERSION
-from django.core.urlresolvers import RegexURLResolver
 from django.utils.translation.trans_real import DjangoTranslation
 
+from .compat import RegexURLResolver
 from .thread_locals import get_current_site
 
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2017, DjaoDjin inc.
+# Copyright (c) 2018, DjaoDjin inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,11 +25,14 @@
 #pylint: disable=no-name-in-module,unused-import
 
 try:
-    from django.contrib.auth import get_user_model
-except ImportError: # django < 1.5
-    from django.contrib.auth.models import User
-else:
-    User = get_user_model()                     #pylint: disable=invalid-name
+    from django.urls import (NoReverseMatch, URLResolver as RegexURLResolver,
+        reverse, reverse_lazy)
+except ImportError: # <= Django 1.10, Python<3.6
+    from django.core.urlresolvers import NoReverseMatch, reverse, reverse_lazy
+except ModuleNotFoundError: #pylint:disable=undefined-variable
+    # <= Django 1.10, Python>=3.6
+    from django.core.urlresolvers import (NoReverseMatch, RegexURLResolver,
+        reverse, reverse_lazy)
 
 
 try:
