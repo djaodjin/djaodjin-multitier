@@ -22,7 +22,9 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pylint: disable=no-name-in-module,unused-import
+#pylint: disable=no-name-in-module,import-error,unused-import
+
+from django.utils.six.moves.urllib.parse import urljoin
 
 try:
     from django.urls import (NoReverseMatch, URLResolver as RegexURLResolver,

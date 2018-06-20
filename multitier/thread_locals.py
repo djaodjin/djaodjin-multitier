@@ -29,7 +29,7 @@ from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.encoding import iri_to_uri, python_2_unicode_compatible
 
 from . import settings
-from .compat import reverse
+from .compat import reverse, urljoin
 
 try:
     from threading import local
@@ -58,11 +58,20 @@ class CurrentSite(object):
     def __str__(self):
         return self.db_object.__str__()
 
-    def as_absolute_uri(self, path=''):
+    def as_absolute_uri(self, path='/'):
         if self.db_object.domain:
             host = self.db_object.domain
         else:
             host = self.default_host
+            if self.path_prefix:
+                if path.startswith('/'):
+                    path = path[1:]
+                if path.startswith(self.path_prefix):
+                    path = path[len(self.path_prefix):]
+                if path.startswith('/'):
+                    # In case we removed the path_prefix previously
+                    path = path[1:]
+                path = urljoin('/%s/' % self.path_prefix, path)
         return iri_to_uri('%(scheme)s://%(host)s%(path)s' % {
             'scheme': self.default_scheme, 'host': host, 'path': path})
 
