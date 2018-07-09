@@ -90,6 +90,7 @@ class Site(models.Model):
     is_path_prefix = models.BooleanField(default=False,
         help_text="use slug as a prefix for URL paths instead of domain field.")
     tag = models.CharField(null=True, max_length=255)
+    cert_location= models.CharField(null=True, max_length=1024)
 
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
