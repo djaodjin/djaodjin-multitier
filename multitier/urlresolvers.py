@@ -25,13 +25,25 @@
 import re
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
+from django.urls import base
+from django.utils import lru_cache, six
 from django.utils.datastructures import MultiValueDict
 from django.utils.regex_helper import normalize
 
 from .compat import (RegexURLResolver as DjangoRegexURLResolver,
     RegexURLPattern as DjangoRegexURLPattern)
 from .thread_locals import get_current_site
+
+@lru_cache.lru_cache(maxsize=None)
+def get_resolver(urlconf=None):
+    if urlconf is None:
+        from django.conf import settings
+        urlconf = settings.ROOT_URLCONF
+    return RegexURLResolver(r'^/', urlconf)
+
+# Severe monkey patching without which calling the top level resolver
+# `_reverse_with_prefix` method is not updating caches for *path_prefix*.
+base.get_resolver = get_resolver
 
 
 class RegexURLResolver(DjangoRegexURLResolver):
