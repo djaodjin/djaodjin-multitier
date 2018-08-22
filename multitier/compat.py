@@ -27,15 +27,15 @@
 from django.utils.six.moves.urllib.parse import urljoin
 
 try:
-    from django.urls import (NoReverseMatch, URLResolver as RegexURLResolver,
-        reverse, reverse_lazy)
+    from django.urls import (NoReverseMatch, URLPattern as RegexURLPattern,
+        URLResolver as RegexURLResolver, reverse, reverse_lazy)
 except ImportError: # <= Django 1.10, Python<3.6
-    from django.core.urlresolvers import (NoReverseMatch, RegexURLResolver,
-        reverse, reverse_lazy)
+    from django.core.urlresolvers import (NoReverseMatch, RegexURLPattern,
+        RegexURLResolver, reverse, reverse_lazy)
 except ModuleNotFoundError: #pylint:disable=undefined-variable
     # <= Django 1.10, Python>=3.6
-    from django.core.urlresolvers import (NoReverseMatch, RegexURLResolver,
-        reverse, reverse_lazy)
+    from django.core.urlresolvers import (NoReverseMatch, RegexURLPattern,
+        RegexURLResolver, reverse, reverse_lazy)
 
 
 try:

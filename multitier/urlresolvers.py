@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2018, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -24,47 +24,119 @@
 
 import re
 
-from django import VERSION as DJANGO_VERSION
-from django.utils.translation.trans_real import DjangoTranslation
+from django.core.exceptions import ImproperlyConfigured
+from django.utils import six
+from django.utils.datastructures import MultiValueDict
+from django.utils.regex_helper import normalize
 
-from .compat import RegexURLResolver
+from .compat import (RegexURLResolver as DjangoRegexURLResolver,
+    RegexURLPattern as DjangoRegexURLPattern)
 from .thread_locals import get_current_site
 
 
-class SiteCode(DjangoTranslation):
+class RegexURLResolver(DjangoRegexURLResolver):
+    """
+    A URL resolver that always matches the active organization code
+    as URL prefix.
+    """
+    def __init__(self, regex, urlconf_name, *args, **kwargs):
+        super(RegexURLResolver, self).__init__(
+            regex, urlconf_name, *args, **kwargs)
 
-    def __init__(self, *args, **kw):
-        # Django 1.7:
-        #    def __init__(self, *args, **kw):
-        #        gettext_module.GNUTranslations.__init__(self, *args, **kw)
-        # Django 1.8:
-        #    def __init__(self, language):
-        #        gettext_module.GNUTranslations.__init__(self)
-        #        self.__language = language
-        # XXX Django 1.8 prototype is very strange since the call
-        #     from gettext.py will be:
-        #         with open(mofile, 'rb') as fp:
-        #             t = _translations.setdefault(key, class_(fp))
-        if DJANGO_VERSION[0] == 1 and DJANGO_VERSION[1] < 8:
-            DjangoTranslation.__init__(self, *args, **kw)
-        else:
-            DjangoTranslation.__init__(self, 'en-us')
-        self._catalog = {}
-        self.set_output_charset('utf-8')
-        self.__language = 'en-us'
-
-    def set_language(self, language):
-        self.__language = language
-
-    def language(self):
-        return self.__language
-
-    def to_language(self):
+    @staticmethod
+    def _get_path_prefix():
+        path_prefix = "_"
         current_site = get_current_site()
         if current_site and current_site.path_prefix:
-            # current_site will be None when 'manage.py show_urls' is invoked.
-            return current_site.path_prefix
-        return 'en-us'
+            path_prefix = current_site.path_prefix
+        return path_prefix
+
+    # Implementation Note:
+    # Copy/Pasted `RegexURLResolver._populate` here because that was the only
+    # way to override `language_code = get_language()` to use a dynamic path
+    # prefix `path_prefix = self._get_path_prefix()`.
+    def _populate(self):
+        # Short-circuit if called recursively in this thread to prevent
+        # infinite recursion. Concurrent threads may call this at the same
+        # time and will need to continue, so set 'populating' on a
+        # thread-local variable.
+        #pylint:disable=protected-access,too-many-locals
+        if getattr(self._local, 'populating', False):
+            return
+        self._local.populating = True
+        lookups = MultiValueDict()
+        namespaces = {}
+        apps = {}
+        path_prefix = self._get_path_prefix()
+        for pattern in reversed(self.url_patterns):
+            if isinstance(pattern, DjangoRegexURLPattern):
+                self._callback_strs.add(pattern.lookup_str)
+            # could be RegexURLPattern.regex or RegexURLResolver.regex here.
+            p_pattern = pattern.regex.pattern
+            if p_pattern.startswith('^'):
+                p_pattern = p_pattern[1:]
+            if isinstance(pattern, DjangoRegexURLResolver):
+                if pattern.namespace:
+                    namespaces[pattern.namespace] = (p_pattern, pattern)
+                    if pattern.app_name:
+                        apps.setdefault(
+                            pattern.app_name, []).append(pattern.namespace)
+                else:
+                    parent_pat = pattern.regex.pattern
+                    for name in pattern.reverse_dict:
+                        for _, pat, defaults \
+                            in pattern.reverse_dict.getlist(name):
+                            new_matches = normalize(parent_pat + pat)
+                            lookups.appendlist(
+                                name,
+                                (
+                                    new_matches,
+                                    p_pattern + pat,
+                                    dict(defaults, **pattern.default_kwargs),
+                                )
+                            )
+                    for namespace, (prefix, sub_pattern) \
+                        in pattern.namespace_dict.items():
+                        namespaces[namespace] = (
+                            p_pattern + prefix, sub_pattern)
+                    for app_name, namespace_list in pattern.app_dict.items():
+                        apps.setdefault(app_name, []).extend(namespace_list)
+                if not getattr(pattern._local, 'populating', False):
+                    pattern._populate()
+                self._callback_strs.update(pattern._callback_strs)
+            else:
+                bits = normalize(p_pattern)
+                lookups.appendlist(
+                    pattern.callback, (bits, p_pattern, pattern.default_args))
+                if pattern.name is not None:
+                    lookups.appendlist(
+                        pattern.name, (bits, p_pattern, pattern.default_args))
+        self._reverse_dict[path_prefix] = lookups
+        self._namespace_dict[path_prefix] = namespaces
+        self._app_dict[path_prefix] = apps
+        self._populated = True
+        self._local.populating = False
+
+    @property
+    def reverse_dict(self):
+        path_prefix = self._get_path_prefix()
+        if path_prefix not in self._reverse_dict:
+            self._populate()
+        return self._reverse_dict[path_prefix]
+
+    @property
+    def namespace_dict(self):
+        path_prefix = self._get_path_prefix()
+        if path_prefix not in self._namespace_dict:
+            self._populate()
+        return self._namespace_dict[path_prefix]
+
+    @property
+    def app_dict(self):
+        path_prefix = self._get_path_prefix()
+        if path_prefix not in self._app_dict:
+            self._populate()
+        return self._app_dict[path_prefix]
 
 
 class SiteRegexURLResolver(RegexURLResolver):
@@ -72,17 +144,16 @@ class SiteRegexURLResolver(RegexURLResolver):
     A URL resolver that always matches the active organization code
     as URL prefix.
     """
-    def __init__(self, urlconf_name,
-                 default_kwargs=None, app_name=None, namespace=None):
+    def __init__(self, regex, urlconf_name, *args, **kwargs):
         super(SiteRegexURLResolver, self).__init__(
-            None, urlconf_name, default_kwargs, app_name, namespace)
+            regex, urlconf_name, *args, **kwargs)
 
     @property
     def regex(self):
-        current_site = get_current_site()
-        if current_site and current_site.path_prefix:
+        path_prefix = self._get_path_prefix()
+        if path_prefix != '_':
             # site will be None when 'manage.py show_urls' is invoked.
-            return re.compile('^%s/' % current_site.path_prefix, re.UNICODE)
+            return re.compile('^%s/' % path_prefix, re.UNICODE)
         return re.compile('^', re.UNICODE)
 
 
@@ -93,4 +164,52 @@ def site_patterns(*args):
     URLconf.
     """
     pattern_list = args
-    return [SiteRegexURLResolver(pattern_list)]
+    return [SiteRegexURLResolver('', pattern_list)]
+
+
+try:
+    from django.urls.resolvers import RegexPattern
+
+    def url_sites(regex, view, kwargs=None, name=None, prefix=''):
+        #pylint:disable=unused-argument
+        if not view:
+            raise ImproperlyConfigured(
+                'Empty URL pattern view name not permitted (for pattern %r)'
+                % regex)
+        if isinstance(view, (list, tuple)):
+            # For include(...) processing.
+            pattern = RegexPattern(regex, is_endpoint=False)
+            urlconf_module, app_name, namespace = view
+            return RegexURLResolver(
+                pattern,
+                urlconf_module,
+                kwargs,
+                app_name=app_name,
+                namespace=namespace,
+            )
+        elif callable(view):
+            pattern = RegexPattern(regex, name=name, is_endpoint=True)
+            return DjangoRegexURLPattern(pattern, view, kwargs, name)
+        else:
+            raise TypeError('view must be a callable or a list/tuple'\
+                ' in the case of include().')
+
+except ImportError:
+    def url_sites(regex, view, kwargs=None, name=None, prefix='',
+            pattern=DjangoRegexURLPattern, resolver=RegexURLResolver):
+        """
+        Modified `django.conf.urls.url` with allows to specify custom
+        RegexURLPattern and RegexURLResolver classes.
+        """
+        #pylint:disable=too-many-arguments
+        if isinstance(view, (list, tuple)):
+            # For include(...) processing.
+            return resolver(regex, view[0], kwargs, *view[1:])
+        else:
+            if isinstance(view, six.string_types):
+                if not view:
+                    raise ImproperlyConfigured('Empty URL pattern view'\
+                        ' name not permitted (for pattern %r)' % regex)
+                if prefix:
+                    view = prefix + '.' + view
+            return pattern(regex, view, kwargs, name)

@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Djaodjin Inc.
+# Copyright (c) 2018, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,19 +23,16 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import logging, re, os, sys
-import gettext as gettext_module
+import logging, re
 
 from django.conf import settings as django_settings
 from django.db.models import Q
 from django.http import Http404
-from django.utils.translation.trans_real import _active
-from django.utils._os import upath
 
 from . import settings
 from .utils import get_site_model
 from .thread_locals import clear_cache, set_current_site
-from .urlresolvers import SiteCode
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -117,11 +114,6 @@ class SiteMiddleware(object):
         set_current_site(site, path_prefix,
             default_scheme=request.scheme, default_host=request.get_host(),
             request=request)
-        globalpath = os.path.join(os.path.dirname(
-                upath(sys.modules[django_settings.__module__].__file__)),
-                'locale')
-        _active.value = gettext_module.translation(
-            'django', globalpath, class_=SiteCode)
         return None
 
 
