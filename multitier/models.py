@@ -129,6 +129,18 @@ class Site(models.Model):
                 for theme_dir in settings.THEMES_DIRS
                     for theme in self.get_templates()]
 
+    def add_tags(self, tags):
+        tags = [''] + tags # make a clone since we are going to be destructive.
+                           # also add the extra coma prefix needed later on.
+        for tag in self.tag.split(','):
+            if tag in tags:
+                tags = [rec for rec in tags if rec != tag]
+        self.tag += ','.join(tags)
+
+    def remove_tags(self, tags):
+        self.tag = ','.join([
+            tag for tag in self.tag.split(',') if tag not in tags])
+
 
 def get_site_or_none(subdomain):
     """
