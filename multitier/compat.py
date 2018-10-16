@@ -87,3 +87,10 @@ def get_app_model_class(app_label, model_name, settings_meta=None):
             "%s refers to model '%s' that has not been installed"
             % (settings_meta, app_label + '.' + model_name))
     return model_class
+
+
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError: # django < 1.11
+    class MiddlewareMixin(object):
+        pass

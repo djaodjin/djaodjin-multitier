@@ -32,15 +32,13 @@ from django.http import Http404
 from . import settings
 from .utils import get_site_model
 from .thread_locals import clear_cache, set_current_site
+from .compat import MiddlewareMixin
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class SiteMiddleware(object):
-
-    def __init__(self):
-        pass
+class SiteMiddleware(MiddlewareMixin):
 
     @staticmethod
     def as_candidate_site(request):
@@ -117,7 +115,7 @@ class SiteMiddleware(object):
         return None
 
 
-class SetRemoteAddrFromForwardedFor(object):
+class SetRemoteAddrFromForwardedFor(MiddlewareMixin):
     """
     set REMOTE_ADDR based on HTTP_X_FORWARDED_FOR.
     """
