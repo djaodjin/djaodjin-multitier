@@ -28,6 +28,8 @@ import logging, re
 from django.conf import settings as django_settings
 from django.db.models import Q
 from django.http import Http404
+from django.utils.cache import patch_vary_headers
+from django.utils import six
 
 from . import settings
 from .utils import get_site_model
@@ -36,6 +38,8 @@ from .compat import MiddlewareMixin
 
 
 LOGGER = logging.getLogger(__name__)
+
+ACCESS_CONTROL_ALLOW_ORIGIN = 'Access-Control-Allow-Origin'
 
 
 class SiteMiddleware(MiddlewareMixin):
@@ -113,6 +117,28 @@ class SiteMiddleware(MiddlewareMixin):
             default_scheme=request.scheme, default_host=request.get_host(),
             request=request)
         return None
+
+    def process_response(self, request, response):
+        #pylint:disable=no-self-use
+        origin = request.META.get('HTTP_ORIGIN')
+        if not origin:
+            return response
+
+        host = request.get_host().split(':')[0].lower()
+        origin_host = six.moves.urllib.parse.urlparse(
+            origin).netloc.split(':')[0].lower()
+        if origin_host.startswith('www.'):
+            origin_host = origin_host[3:]
+        else:
+            origin_host = '.%s' % origin_host
+        if host.endswith(origin_host):
+            patch_vary_headers(response, ['Origin'])
+            response[ACCESS_CONTROL_ALLOW_ORIGIN] = origin
+        else:
+            logging.getLogger('django.security.SuspiciousOperation').info(
+                "request %s was not initiated by origin %s",
+                request.get_raw_uri(), origin_host)
+        return response
 
 
 class SetRemoteAddrFromForwardedFor(MiddlewareMixin):
