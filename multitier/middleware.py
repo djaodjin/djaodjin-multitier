@@ -39,8 +39,8 @@ from .compat import MiddlewareMixin
 
 LOGGER = logging.getLogger(__name__)
 
+ACCESS_CONTROL_ALLOW_HEADERS = 'Access-Control-Allow-Headers'
 ACCESS_CONTROL_ALLOW_ORIGIN = 'Access-Control-Allow-Origin'
-
 
 class SiteMiddleware(MiddlewareMixin):
 
@@ -133,6 +133,8 @@ class SiteMiddleware(MiddlewareMixin):
             origin_host = '.%s' % origin_host
         if host.endswith(origin_host):
             patch_vary_headers(response, ['Origin'])
+            response[ACCESS_CONTROL_ALLOW_HEADERS] = \
+                "Origin, X-Requested-With, Content-Type, Accept"
             response[ACCESS_CONTROL_ALLOW_ORIGIN] = origin
         else:
             logging.getLogger('django.security.SuspiciousOperation').info(
