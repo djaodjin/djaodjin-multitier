@@ -128,17 +128,15 @@ class SiteMiddleware(MiddlewareMixin):
         origin_host = six.moves.urllib.parse.urlparse(
             origin).netloc.split(':')[0].lower()
         if origin_host.startswith('www.'):
-            origin_host = origin_host[3:]
-        else:
-            origin_host = '.%s' % origin_host
-        if host.endswith(origin_host):
+            origin_host = origin_host[4:]
+        if host.endswith('.%s' % origin_host):
             patch_vary_headers(response, ['Origin'])
             response[ACCESS_CONTROL_ALLOW_HEADERS] = \
                 "Origin, X-Requested-With, Content-Type, Accept"
             response[ACCESS_CONTROL_ALLOW_ORIGIN] = origin
-        else:
+        elif host != origin_host:
             logging.getLogger('django.security.SuspiciousOperation').info(
-                "request %s was not initiated by origin %s",
+                "request %s was not initiated by origin .%s",
                 request.get_raw_uri(), origin_host)
         return response
 

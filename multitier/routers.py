@@ -70,9 +70,10 @@ class SiteRouter(object):
         """
         Attempts to write ``apps`` models to the current provider.
         """
+        result = None
         if self.includes(model):
-            return self.provider_db()
-        return None
+            result = self.provider_db()
+        return result
 
     def allow_relation(self, obj1, obj2, **hints):
         #pylint: disable=unused-argument
