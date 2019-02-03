@@ -9,6 +9,12 @@ binDir        ?= $(installTop)/bin
 PYTHON        := $(binDir)/python
 installDirs   ?= install -d
 
+# Django 1.7,1.8 sync tables without migrations by default while Django 1.9
+# requires a --run-syncdb argument.
+# Implementation Note: We have to wait for the config files to be installed
+# before running the manage.py command (else missing SECRECT_KEY).
+RUNSYNCDB     = $(if $(findstring --run-syncdb,$(shell cd $(srcDir) && $(PYTHON) manage.py migrate --help 2>/dev/null)),--run-syncdb,)
+
 install::
 	cd $(srcDir) && $(PYTHON) ./setup.py --quiet \
 		build -b $(CURDIR)/build install
@@ -22,7 +28,7 @@ credentials: $(srcDir)/testsite/etc/credentials.conf
 
 initdb: install-conf
 	-rm -f $(srcDir)/db.sqlite $(srcDir)/example1.sqlite $(srcDir)/example2.sqlite
-	cd $(srcDir) && $(PYTHON) ./manage.py migrate --noinput
+	cd $(srcDir) && $(PYTHON) ./manage.py migrate $(RUNSYNCDB) --noinput
 	cd $(srcDir) && $(PYTHON) ./manage.py loaddata testsite/fixtures/test_data.json
 	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite $(PYTHON) ./manage.py migrate --database example1 --noinput
 	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite $(PYTHON) ./manage.py loaddata --database example1 testsite/fixtures/example1.json

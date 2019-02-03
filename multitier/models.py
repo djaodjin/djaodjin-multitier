@@ -26,14 +26,17 @@
 Models for the multi-tier application.
 """
 
-import string
+import re, string
 
-from django.core.validators import RegexValidator, URLValidator
+from django.core.validators import (_lazy_re_compile, RegexValidator,
+    URLValidator)
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils._os import safe_join
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
+
+from deployutils.crypt import decrypt, encrypt
 
 from . import settings
 from .utils import get_site_model
@@ -45,7 +48,16 @@ SUBDOMAIN_SLUG = RegexValidator(
     _("Enter a valid subdomain consisting of letters, digits or hyphens."),
     'invalid'
 )
-
+HOST_VALIDATOR = RegexValidator(
+    _lazy_re_compile(
+        r'(?:' + URLValidator.ipv4_re + '|' + URLValidator.ipv6_re + \
+        '|' + URLValidator.host_re + ')' # host
+        r'(?::\d{2,5})?'                                       # port
+        r'(?:[/?#][^\s]*)?'                                    # resource path
+        r'\Z', re.IGNORECASE),
+    _("Enter a valid host, optionally followed by a port and resource path."),
+    'invalid'
+)
 
 def domain_name_validator(value):
     """
@@ -66,37 +78,62 @@ def domain_name_validator(value):
 class BaseSite(models.Model):
 
     # Since most DNS provider limit subdomain length to 25 characters,
-    # we do here too.
+    # we do here too. `django.contrib.Site` limits the domain length
+    # to 100 characters so we also do the same. Though 100 characters
+    # is often not enough for 3rd part db/email host names (ex: AWS RDS,
+    # AWS SES) so we bumped the limit to 255 for those.
     slug = models.SlugField(unique=True, max_length=25,
         validators=[SUBDOMAIN_SLUG],
         help_text="unique identifier for the site (also serves as subdomain)")
 
-    domain = models.CharField(null=True, blank=True, max_length=100,
+    domain = models.CharField(max_length=100, null=True, blank=True,
         validators=[domain_name_validator, RegexValidator(
             URLValidator.host_re,
-            "Enter a valid 'domain', ex: example.com", 'invalid')],
+            _("Enter a valid 'domain', ex: example.com"), 'invalid')],
         help_text=_(
-            "fully qualified domain name at which the site is available"))
+            _("fully qualified domain name at which the site is available")))
+    is_path_prefix = models.BooleanField(default=False, help_text=_(
+        "use slug as a prefix for URL paths instead of domain field."))
+    cert_location = models.CharField(max_length=1024, null=True,
+        help_text=_("Location of the TLS certificate for HTTPS connections"))
 
     account = models.ForeignKey(
         settings.ACCOUNT_MODEL, null=True, on_delete=models.CASCADE,
         related_name='sites')
-
-    db_name = models.SlugField(null=True,
-        help_text='name of database to connect to for the site')
-    db_host = models.CharField(max_length=255, null=True,
-        help_text='host to connect to to access the database')
-    db_port = models.IntegerField(null=True,
-        help_text='port to connect to to access the database')
-
-    base = models.ForeignKey(settings.MULTITIER_SITE_MODEL,
+    is_active = models.BooleanField(default=False,
+        help_text=_("The Site is active or not"))
+    tag = models.CharField(null=True, max_length=255,
+        help_text=_("Tags can be used by the project to filter sites"))
+    base = models.ForeignKey('self',
         null=True, on_delete=models.CASCADE,
-        help_text='The site is a derivative of this parent.')
-    is_active = models.BooleanField(default=False)
-    is_path_prefix = models.BooleanField(default=False,
-        help_text="use slug as a prefix for URL paths instead of domain field.")
-    tag = models.CharField(null=True, max_length=255)
-    cert_location = models.CharField(null=True, max_length=1024)
+        help_text=_("The site is a derivative of this parent."))
+
+    # Database connection
+    db_name = models.SlugField(null=True,
+        help_text=_("name of database to connect to for the site"))
+    db_host = models.CharField(max_length=255, null=True, blank=True,
+        validators=[HOST_VALIDATOR],
+        help_text=_("host to connect to the database"))
+    db_port = models.IntegerField(null=True, blank=True,
+        help_text=_("port to connect to the database host"))
+    db_host_user = models.CharField(max_length=128, null=True, blank=True,
+        help_text=_("username authorized to connect to the database"))
+    db_host_password = models.CharField(_('Password'),  max_length=128,
+        null=True, blank=True,
+        help_text=_("password to authenticate user connecting to the database"))
+
+    # SMTP connection
+    email_default_from = models.EmailField(null=True, blank=True)
+    email_host = models.CharField(max_length=255, null=True, blank=True,
+        validators=[HOST_VALIDATOR],
+        help_text=_("host to connect to the SMTP server"))
+    email_port = models.IntegerField(null=True, blank=True,
+        help_text=_("port to connect to the SMTP server"))
+    email_host_user = models.CharField(max_length=128, null=True, blank=True,
+        help_text=_("username authorized to send e-mails on the SMTP server"))
+    email_host_password = models.CharField(_('Password'),  max_length=128,
+        null=True, blank=True,
+        help_text=_("password to authenticate the user with the SMTP server"))
 
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
@@ -149,6 +186,23 @@ class BaseSite(models.Model):
     def remove_tags(self, tags):
         self.tag = ','.join([
             tag for tag in self.tag.split(',') if tag not in tags])
+
+    def get_from_email(self):
+        if self.email_default_from:
+            return self.email_default_from
+        if self.email_host_user and '@' in self.email_host_user:
+            return self.email_host_user
+        return settings.DEFAULT_FROM_EMAIL
+
+    def set_email_host_password(self, raw_password, passphrase=None):
+        if not passphrase:
+            passphrase = settings.SECRET_KEY
+        self.email_host_password = encrypt(raw_password, passphrase=passphrase)
+
+    def get_email_host_password(self, passphrase=None):
+        if not passphrase:
+            passphrase = settings.SECRET_KEY
+        return decrypt(self.email_host_password, passphrase=passphrase)
 
 
 @python_2_unicode_compatible

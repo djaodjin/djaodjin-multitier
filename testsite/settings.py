@@ -52,7 +52,7 @@ load_config(os.path.join(BASE_DIR, 'credentials'))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 # Application definition
 
@@ -68,14 +68,17 @@ INSTALLED_APPS = (
     'testsite',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'multitier.middleware.SiteMiddleware',
+    'multitier.middleware.SetRemoteAddrFromForwardedFor',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
+
+MIDDLEWARE_CLASSES = MIDDLEWARE
 
 ROOT_URLCONF = 'testsite.urls'
 
@@ -87,7 +90,7 @@ TEMPLATE_DEBUG = True
 
 # Django 1.7 and below
 TEMPLATE_LOADERS = (
-    'multitier.template_loader.Loader',
+    'multitier.loaders.django.Loader',
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 )

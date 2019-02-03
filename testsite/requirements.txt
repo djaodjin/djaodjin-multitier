@@ -1,0 +1,2 @@
+Django==1.11.18
+deployutils==0.5.8

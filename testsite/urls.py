@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Djaodjin Inc.
+# Copyright (c) 2019, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,8 @@ from multitier.urlresolvers import site_patterns
 urlpatterns = site_patterns(
     url(r'^', include('django.contrib.auth.urls')),
     url(r'^accounts/profile/',
-        login_required(TemplateView.as_view(template_name='index.html')),
+        login_required(
+            TemplateView.as_view(template_name='index.html')),
         name='accounts_profile'),
     url(r'^$', TemplateView.as_view(template_name='index.html')),
 )

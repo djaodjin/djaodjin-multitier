@@ -1,24 +1,21 @@
 [
 {
     "fields": {
-      "slug": "djaodjin-multitier",
-      "subdomain": "djaodjin-multitier"
+      "slug": "djaodjin-multitier"
     },
     "model": "multitier.Site", "pk": 1
 },
 {
     "fields": {
       "slug": "example1",
-      "db_name": "example1",
-      "subdomain": "example1"
+      "db_name": "example1"
     },
     "model": "multitier.Site", "pk": 2
 },
 {
     "fields": {
       "slug": "example2",
-      "db_name": "example2",
-      "subdomain": "example2"
+      "db_name": "example2"
     },
     "model": "multitier.Site", "pk": 3
 }
