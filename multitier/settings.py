@@ -1,4 +1,4 @@
-# Copyright (c) 2015, DjaoDjin inc.
+# Copyright (c) 2019, DjaoDjin inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,10 @@ import os
 
 from django.conf import settings
 
+# `MULTITIER_SITE_MODEL` cannot be included in `_SETTINGS` because
+# of the way Django handles swappable models.
+MULTITIER_SITE_MODEL = getattr(settings, 'MULTITIER_SITE_MODEL', None)
+
 _SETTINGS = {
     'ACCOUNT_MODEL': settings.AUTH_USER_MODEL,
     'ACCOUNT_GET_CURRENT': None,
@@ -57,5 +61,5 @@ DEFAULT_SITE = _SETTINGS.get('DEFAULT_SITE')
 DEFAULT_URLS = _SETTINGS.get('DEFAULT_URLS')
 ROUTER_APPS = _SETTINGS.get('ROUTER_APPS')
 ROUTER_TABLES = _SETTINGS.get('ROUTER_TABLES')
-THEMES_DIRS = _SETTINGS.get('THEMES_DIRS')
 STATICFILES_DIRS = _SETTINGS.get('STATICFILES_DIRS')
+THEMES_DIRS = _SETTINGS.get('THEMES_DIRS')

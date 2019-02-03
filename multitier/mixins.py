@@ -86,8 +86,9 @@ class AccountMixin(object):
                 self._account = import_string(settings.ACCOUNT_GET_CURRENT)(
                     self.kwargs.get(self.account_url_kwarg))
             else:
-                self._account = get_model_class(settings.ACCOUNT_MODEL,
-                    "MULTITIER['ACCOUNT_MODEL']").objects.get(
+                self._account = get_object_or_404(
+                    get_model_class(settings.ACCOUNT_MODEL,
+                        "MULTITIER['ACCOUNT_MODEL']"),
                     slug=self.kwargs.get(self.account_url_kwarg, None))
         return self._account
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Djaodjin Inc.
+# Copyright (c) 2019, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -61,19 +61,23 @@ def domain_name_validator(value):
             code='invalid',
         )
 
+
 @python_2_unicode_compatible
-class Site(models.Model):
+class BaseSite(models.Model):
 
     # Since most DNS provider limit subdomain length to 25 characters,
     # we do here too.
     slug = models.SlugField(unique=True, max_length=25,
         validators=[SUBDOMAIN_SLUG],
         help_text="unique identifier for the site (also serves as subdomain)")
+
     domain = models.CharField(null=True, blank=True, max_length=100,
-        help_text='fully qualified domain name at which the site is available',
         validators=[domain_name_validator, RegexValidator(
             URLValidator.host_re,
-            "Enter a valid 'domain', ex: example.com", 'invalid')])
+            "Enter a valid 'domain', ex: example.com", 'invalid')],
+        help_text=_(
+            "fully qualified domain name at which the site is available"))
+
     account = models.ForeignKey(
         settings.ACCOUNT_MODEL, null=True, on_delete=models.CASCADE,
         related_name='sites')
@@ -85,7 +89,7 @@ class Site(models.Model):
     db_port = models.IntegerField(null=True,
         help_text='port to connect to to access the database')
 
-    base = models.ForeignKey('multitier.Site',
+    base = models.ForeignKey(settings.MULTITIER_SITE_MODEL,
         null=True, on_delete=models.CASCADE,
         help_text='The site is a derivative of this parent.')
     is_active = models.BooleanField(default=False)
@@ -96,6 +100,11 @@ class Site(models.Model):
 
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
+        abstract = True
+
+    def __str__(self): #pylint: disable=super-on-old-class
+        return self.slug
+
 
     def __str__(self): #pylint: disable=super-on-old-class
         return self.slug
@@ -140,6 +149,13 @@ class Site(models.Model):
     def remove_tags(self, tags):
         self.tag = ','.join([
             tag for tag in self.tag.split(',') if tag not in tags])
+
+
+@python_2_unicode_compatible
+class Site(BaseSite):
+
+    def __str__(self): #pylint: disable=super-on-old-class
+        return self.slug
 
 
 def get_site_or_none(subdomain):
