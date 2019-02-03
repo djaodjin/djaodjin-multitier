@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Djaodjin Inc.
+# Copyright (c) 2019, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,22 +23,24 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from django.apps import apps as django_apps
-from django.conf import settings as django_settings
 from django.core.exceptions import ImproperlyConfigured
+
+from . import settings
+
 
 def get_site_model():
     """
     Returns the ``Site`` model that is active in this Django project.
     """
-    if hasattr(django_settings, 'MULTITIER_SITE_MODEL'):
+    if hasattr(settings, 'MULTITIER_SITE_MODEL'):
         try:
-            return django_apps.get_model(django_settings.MULTITIER_SITE_MODEL)
+            return django_apps.get_model(settings.MULTITIER_SITE_MODEL)
         except ValueError:
             raise ImproperlyConfigured("MULTITIER_SITE_MODEL must be "\
                 "of the form 'app_label.model_name'")
         except LookupError:
             raise ImproperlyConfigured("MULTITIER_SITE_MODEL refers to model"\
                 " '%s' that has not been installed"
-                % django_settings.MULTITIER_SITE_MODEL)
+                % settings.MULTITIER_SITE_MODEL)
 
     return django_apps.get_model('multitier.Site')
