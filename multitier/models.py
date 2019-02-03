@@ -35,6 +35,8 @@ from django.utils._os import safe_join
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
+from deployutils.crypt import decrypt, encrypt
+
 from . import settings
 from .utils import get_site_model
 
@@ -94,6 +96,18 @@ class Site(models.Model):
     tag = models.CharField(null=True, max_length=255)
     cert_location = models.CharField(null=True, max_length=1024)
 
+    # DjaoDjin-specific fields for connection to the SMTP server
+    email_host = models.CharField(null=True, blank=True, max_length=100,
+        help_text='fully qualified domain name at which the site is available',
+        validators=[domain_name_validator, RegexValidator(
+            r'[a-z0-9][a-z0-9\-]*(\.[a-z0-9\-])+',
+            "Enter a valid 'domain', ex: example.com", 'invalid')])
+    email_port = models.IntegerField(null=True, blank=True)
+    email_host_user = models.CharField(null=True, blank=True, max_length=128)
+    email_host_password = models.CharField(_('Password'), null=True, blank=True,
+        max_length=128)
+    email_default_from = models.EmailField(null=True, blank=True)
+
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
 
@@ -140,6 +154,23 @@ class Site(models.Model):
     def remove_tags(self, tags):
         self.tag = ','.join([
             tag for tag in self.tag.split(',') if tag not in tags])
+
+    def get_from_email(self):
+        if self.email_default_from:
+            return self.email_default_from
+        if self.email_host_user and '@' in self.email_host_user:
+            return self.email_host_user
+        return settings.DEFAULT_FROM_EMAIL
+
+    def set_email_host_password(self, raw_password, passphrase=None):
+        if not passphrase:
+            passphrase = settings.SECRET_KEY
+        self.email_host_password = encrypt(raw_password, passphrase=passphrase)
+
+    def get_email_host_password(self, passphrase=None):
+        if not passphrase:
+            passphrase = settings.SECRET_KEY
+        return decrypt(self.email_host_password, passphrase=passphrase)
 
 
 def get_site_or_none(subdomain):
