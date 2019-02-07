@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Djaodjin Inc.
+# Copyright (c) 2019, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -92,6 +92,7 @@ class SiteRouter(object):
         Make sure the apps only appears in the current provider
         database.
         """
+        result = True
         model = hints.get('model')
         if model is None:
             if model_name is not None:
@@ -100,5 +101,5 @@ class SiteRouter(object):
                 # Django 1.7 prototype is allow_migrate(self, db, model)
                 model = app_label
         if database != DEFAULT_DB_ALIAS:
-            return self.includes(model)
-        return True
+            result = self.includes(model)
+        return result

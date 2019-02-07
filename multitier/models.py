@@ -83,8 +83,8 @@ class BaseSite(models.Model):
     # is often not enough for 3rd part db/email host names (ex: AWS RDS,
     # AWS SES) so we bumped the limit to 255 for those.
     slug = models.SlugField(unique=True, max_length=25,
-        validators=[SUBDOMAIN_SLUG],
-        help_text="unique identifier for the site (also serves as subdomain)")
+        validators=[SUBDOMAIN_SLUG], help_text=_(
+            "unique identifier for the site (also serves as subdomain)"))
 
     domain = models.CharField(max_length=100, null=True, blank=True,
         validators=[domain_name_validator, RegexValidator(
@@ -118,7 +118,7 @@ class BaseSite(models.Model):
         help_text=_("port to connect to the database host"))
     db_host_user = models.CharField(max_length=128, null=True, blank=True,
         help_text=_("username authorized to connect to the database"))
-    db_host_password = models.CharField(_('Password'),  max_length=128,
+    db_host_password = models.CharField(_('Password'), max_length=128,
         null=True, blank=True,
         help_text=_("password to authenticate user connecting to the database"))
 
@@ -131,17 +131,13 @@ class BaseSite(models.Model):
         help_text=_("port to connect to the SMTP server"))
     email_host_user = models.CharField(max_length=128, null=True, blank=True,
         help_text=_("username authorized to send e-mails on the SMTP server"))
-    email_host_password = models.CharField(_('Password'),  max_length=128,
+    email_host_password = models.CharField(_('Password'), max_length=128,
         null=True, blank=True,
         help_text=_("password to authenticate the user with the SMTP server"))
 
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
         abstract = True
-
-    def __str__(self): #pylint: disable=super-on-old-class
-        return self.slug
-
 
     def __str__(self): #pylint: disable=super-on-old-class
         return self.slug
