@@ -184,7 +184,7 @@ class BaseSite(models.Model):
         self.tag = ','.join([
             tag for tag in self.tag.split(',') if tag not in tags])
 
-    def get_connection(self):
+    def get_email_connection(self):
         kwargs = {}
         if self.email_host:
             kwargs['host'] = self.email_host
