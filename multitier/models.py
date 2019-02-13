@@ -109,7 +109,7 @@ class BaseSite(models.Model):
         help_text=_("The site is a derivative of this parent."))
 
     # Database connection
-    db_name = models.SlugField(null=True,
+    db_name = models.SlugField(max_length=255, null=True,
         help_text=_("name of database to connect to for the site"))
     db_host = models.CharField(max_length=255, null=True, blank=True,
         validators=[HOST_VALIDATOR],
