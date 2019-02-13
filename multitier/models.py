@@ -28,6 +28,7 @@ Models for the multi-tier application.
 
 import re, string
 
+from django.core.mail import get_connection as get_connection_base
 from django.core.validators import (_lazy_re_compile, RegexValidator,
     URLValidator)
 from django.core.exceptions import ValidationError
@@ -182,6 +183,18 @@ class BaseSite(models.Model):
     def remove_tags(self, tags):
         self.tag = ','.join([
             tag for tag in self.tag.split(',') if tag not in tags])
+
+    def get_connection(self):
+        kwargs = {}
+        if self.email_host:
+            kwargs['host'] = self.email_host
+        if self.email_port:
+            kwargs['port'] = self.email_port
+        if self.email_host_user:
+            kwargs['username'] = self.email_host_user
+        if self.email_host_password:
+            kwargs['password'] = self.get_email_host_password()
+        return get_connection_base(**kwargs)
 
     def get_from_email(self):
         if self.email_default_from:
