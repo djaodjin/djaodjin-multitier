@@ -175,14 +175,18 @@ class BaseSite(models.Model):
     def add_tags(self, tags):
         tags = [''] + tags # make a clone since we are going to be destructive.
                            # also add the extra coma prefix needed later on.
-        for tag in self.tag.split(','):
-            if tag in tags:
-                tags = [rec for rec in tags if rec != tag]
+        if self.tag:
+            for tag in self.tag.split(','):
+                if tag in tags:
+                    tags = [rec for rec in tags if rec != tag]
+        else:
+            self.tag = ""
         self.tag += ','.join(tags)
 
     def remove_tags(self, tags):
-        self.tag = ','.join([
-            tag for tag in self.tag.split(',') if tag not in tags])
+        if self.tag:
+            self.tag = ','.join([
+                tag for tag in self.tag.split(',') if tag not in tags])
 
     def get_email_connection(self):
         kwargs = {}

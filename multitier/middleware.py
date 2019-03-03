@@ -84,7 +84,7 @@ class SiteMiddleware(MiddlewareMixin):
             if site is None:
                 #pylint: disable=raising-bad-type
                 raise get_site_model().DoesNotExist
-            elif site.slug != path_prefix:
+            elif not site.is_path_prefix or site.slug != path_prefix:
                 path_prefix = ''
         except get_site_model().DoesNotExist:
             if candidate is not None:
