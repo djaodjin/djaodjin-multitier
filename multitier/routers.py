@@ -24,6 +24,7 @@
 
 from django.conf import settings as django_settings
 from django.db import DEFAULT_DB_ALIAS
+from django.utils import six
 
 from . import settings
 from .compat import get_app_model_class
@@ -53,6 +54,8 @@ class SiteRouter(object):
         return DEFAULT_DB_ALIAS
 
     def includes(self, model):
+        if isinstance(model, six.string_types):
+            return model in self.apps
         return (model._meta.app_label in self.apps
                 or model._meta.db_table in self.tables)
 
