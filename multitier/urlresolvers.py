@@ -46,6 +46,37 @@ def get_resolver(urlconf=None):
 base.get_resolver = get_resolver
 
 
+class SitePrefixPattern(object):
+
+    @staticmethod
+    def _get_path_prefix():
+        path_prefix = ""
+        current_site = get_current_site()
+        if current_site and current_site.path_prefix:
+            path_prefix = "%s/" % current_site.path_prefix
+        return path_prefix
+
+    @property
+    def regex(self):
+        # This is only used by reverse() and cached in _reverse_dict.
+        return re.compile(self._get_path_prefix(), re.UNICODE)
+
+    def match(self, path):
+        path_prefix = self._get_path_prefix()
+        if path_prefix and path.startswith(path_prefix):
+            return path[len(path_prefix):], (), {}
+        return None
+
+    def check(self):
+        return []
+
+    def describe(self):
+        return "'{}'".format(self)
+
+    def __str__(self):
+        return self._get_path_prefix()
+
+
 class RegexURLResolver(DjangoRegexURLResolver):
     """
     A URL resolver that always matches the active organization code
@@ -176,7 +207,7 @@ def site_patterns(*args):
     URLconf.
     """
     pattern_list = args
-    return [SiteRegexURLResolver('', pattern_list)]
+    return [SiteRegexURLResolver(SitePrefixPattern(), pattern_list)]
 
 
 try:
