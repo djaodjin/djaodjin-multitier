@@ -45,6 +45,6 @@ setup(
     download_url='https://github.com/djaodjin/djaodjin-multitier/tarball/%s' \
         % multitier.__version__,
     license='BSD',
+    long_description_content_type="text/markdown",
     long_description=open('README.md').read(),
-
 )
