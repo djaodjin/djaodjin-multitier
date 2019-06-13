@@ -34,19 +34,11 @@ from .compat import (RegexURLResolver as DjangoRegexURLResolver,
     RegexURLPattern as DjangoRegexURLPattern)
 from .thread_locals import get_current_site
 
-@lru_cache.lru_cache(maxsize=None)
-def get_resolver(urlconf=None):
-    if urlconf is None:
-        from django.conf import settings
-        urlconf = settings.ROOT_URLCONF
-    return RegexURLResolver(r'^/', urlconf)
-
-# Severe monkey patching without which calling the top level resolver
-# `_reverse_with_prefix` method is not updating caches for *path_prefix*.
-base.get_resolver = get_resolver
-
 
 class SitePrefixPattern(object):
+
+    def __init__(self):
+        self.converters = {}
 
     @staticmethod
     def _get_path_prefix():
@@ -63,7 +55,7 @@ class SitePrefixPattern(object):
 
     def match(self, path):
         path_prefix = self._get_path_prefix()
-        if path_prefix and path.startswith(path_prefix):
+        if path.startswith(path_prefix):
             return path[len(path_prefix):], (), {}
         return None
 
@@ -77,13 +69,13 @@ class SitePrefixPattern(object):
         return self._get_path_prefix()
 
 
-class RegexURLResolver(DjangoRegexURLResolver):
+class BaseRegexURLResolver(DjangoRegexURLResolver):
     """
     A URL resolver that always matches the active organization code
     as URL prefix.
     """
     def __init__(self, regex, urlconf_name, *args, **kwargs):
-        super(RegexURLResolver, self).__init__(
+        super(BaseRegexURLResolver, self).__init__(
             regex, urlconf_name, *args, **kwargs)
 
     @staticmethod
@@ -106,59 +98,65 @@ class RegexURLResolver(DjangoRegexURLResolver):
         #pylint:disable=protected-access,too-many-locals
         if getattr(self._local, 'populating', False):
             return
-        self._local.populating = True
-        lookups = MultiValueDict()
-        namespaces = {}
-        apps = {}
-        path_prefix = self._get_path_prefix()
-        for pattern in reversed(self.url_patterns):
-            if isinstance(pattern, DjangoRegexURLPattern):
-                self._callback_strs.add(pattern.lookup_str)
-            # could be RegexURLPattern.regex or RegexURLResolver.regex here.
-            p_pattern = pattern.regex.pattern
-            if p_pattern.startswith('^'):
-                p_pattern = p_pattern[1:]
-            if isinstance(pattern, DjangoRegexURLResolver):
-                if pattern.namespace:
-                    namespaces[pattern.namespace] = (p_pattern, pattern)
-                    if pattern.app_name:
-                        apps.setdefault(
-                            pattern.app_name, []).append(pattern.namespace)
-                else:
-                    parent_pat = pattern.regex.pattern
-                    for name in pattern.reverse_dict:
-                        for _, pat, defaults \
-                            in pattern.reverse_dict.getlist(name):
-                            new_matches = normalize(parent_pat + pat)
-                            lookups.appendlist(
-                                name,
-                                (
-                                    new_matches,
-                                    p_pattern + pat,
-                                    dict(defaults, **pattern.default_kwargs),
+        try:
+            self._local.populating = True
+            lookups = MultiValueDict()
+            namespaces = {}
+            apps = {}
+            path_prefix = self._get_path_prefix()
+            for url_pattern in reversed(self.url_patterns):
+                if isinstance(url_pattern, DjangoRegexURLPattern):
+                    self._callback_strs.add(url_pattern.lookup_str)
+                # could be RegexURLPattern.regex or RegexURLResolver.regex here.
+                p_pattern = url_pattern.regex.pattern
+                if p_pattern.startswith('^'):
+                    p_pattern = p_pattern[1:]
+                if isinstance(url_pattern, DjangoRegexURLResolver):
+                    if url_pattern.namespace:
+                        namespaces[url_pattern.namespace] = (
+                            p_pattern, url_pattern)
+                        if url_pattern.app_name:
+                            apps.setdefault(
+                                url_pattern.app_name, []).append(
+                                    url_pattern.namespace)
+                    else:
+                        parent_pat = url_pattern.regex.pattern
+                        for name in url_pattern.reverse_dict:
+                            for _, pat, defaults \
+                                in url_pattern.reverse_dict.getlist(name):
+                                new_matches = normalize(parent_pat + pat)
+                                lookups.appendlist(
+                                    name,
+                                    (
+                                        new_matches,
+                                        p_pattern + pat,
+                                        dict(defaults,
+                                             **url_pattern.default_kwargs),
+                                    )
                                 )
-                            )
-                    for namespace, (prefix, sub_pattern) \
-                        in pattern.namespace_dict.items():
-                        namespaces[namespace] = (
-                            p_pattern + prefix, sub_pattern)
-                    for app_name, namespace_list in pattern.app_dict.items():
-                        apps.setdefault(app_name, []).extend(namespace_list)
-                if not getattr(pattern._local, 'populating', False):
-                    pattern._populate()
-                self._callback_strs.update(pattern._callback_strs)
-            else:
-                bits = normalize(p_pattern)
-                lookups.appendlist(
-                    pattern.callback, (bits, p_pattern, pattern.default_args))
-                if pattern.name is not None:
-                    lookups.appendlist(
-                        pattern.name, (bits, p_pattern, pattern.default_args))
-        self._reverse_dict[path_prefix] = lookups
-        self._namespace_dict[path_prefix] = namespaces
-        self._app_dict[path_prefix] = apps
-        self._populated = True
-        self._local.populating = False
+                        for namespace, (prefix, sub_pattern) \
+                            in url_pattern.namespace_dict.items():
+                            namespaces[namespace] = (
+                                p_pattern + prefix, sub_pattern)
+                        for app_name, namespace_list in \
+                                url_pattern.app_dict.items():
+                            apps.setdefault(app_name, []).extend(namespace_list)
+                    if not getattr(url_pattern._local, 'populating', False):
+                        url_pattern._populate()
+                    self._callback_strs.update(url_pattern._callback_strs)
+                else:
+                    bits = normalize(p_pattern)
+                    lookups.appendlist(url_pattern.callback, (
+                        bits, p_pattern, url_pattern.default_args))
+                    if url_pattern.name is not None:
+                        lookups.appendlist(url_pattern.name, (
+                            bits, p_pattern, url_pattern.default_args))
+            self._reverse_dict[path_prefix] = lookups
+            self._namespace_dict[path_prefix] = namespaces
+            self._app_dict[path_prefix] = apps
+            self._populated = True
+        finally:
+            self._local.populating = False
 
     @property
     def reverse_dict(self):
@@ -180,6 +178,93 @@ class RegexURLResolver(DjangoRegexURLResolver):
         if path_prefix not in self._app_dict:
             self._populate()
         return self._app_dict[path_prefix]
+
+
+try:
+    from django.urls.resolvers import URLPattern
+
+    class RegexURLResolver(BaseRegexURLResolver):
+
+        def _populate(self):
+            # Short-circuit if called recursively in this thread to prevent
+            # infinite recursion. Concurrent threads may call this at the same
+            # time and will need to continue, so set 'populating' on a
+            # thread-local variable.
+            if getattr(self._local, 'populating', False):
+                return
+            try:
+                self._local.populating = True
+                lookups = MultiValueDict()
+                namespaces = {}
+                apps = {}
+                path_prefix = self._get_path_prefix()
+                for url_pattern in reversed(self.url_patterns):
+                    p_pattern = url_pattern.pattern.regex.pattern
+                    if p_pattern.startswith('^'):
+                        p_pattern = p_pattern[1:]
+                    if isinstance(url_pattern, URLPattern):
+                        self._callback_strs.add(url_pattern.lookup_str)
+                        bits = normalize(url_pattern.pattern.regex.pattern)
+                        lookups.appendlist(
+                            url_pattern.callback, (
+                                bits, p_pattern,
+                                url_pattern.default_args,
+                                url_pattern.pattern.converters)
+                        )
+                        if url_pattern.name is not None:
+                            lookups.appendlist(url_pattern.name, (
+                                bits, p_pattern,
+                                url_pattern.default_args,
+                                url_pattern.pattern.converters)
+                            )
+                    else:  # url_pattern is a URLResolver.
+                        url_pattern._populate()
+                        if url_pattern.app_name:
+                            apps.setdefault(url_pattern.app_name, []).append(
+                                url_pattern.namespace)
+                            namespaces[url_pattern.namespace] = (
+                                p_pattern, url_pattern)
+                        else:
+                            for name in url_pattern.reverse_dict:
+                                for matches, pat, defaults, converters in \
+                                        url_pattern.reverse_dict.getlist(name):
+                                    new_matches = normalize(p_pattern + pat)
+                                    lookups.appendlist(
+                                        name,
+                                        (
+                                            new_matches,
+                                            p_pattern + pat,
+                                            {**defaults,
+                                             **url_pattern.default_kwargs},
+                                            {**self.pattern.converters,
+                                             **url_pattern.pattern.converters,
+                                             **converters}
+                                        )
+                                    )
+                            for namespace, (prefix, sub_pattern) in \
+                                    url_pattern.namespace_dict.items():
+                                current_converters = \
+                                    url_pattern.pattern.converters
+                                sub_pattern.pattern.converters.update(
+                                    current_converters)
+                                namespaces[namespace] = (
+                                    p_pattern + prefix, sub_pattern)
+                            for app_name, namespace_list in \
+                                    url_pattern.app_dict.items():
+                                apps.setdefault(app_name, []).extend(
+                                    namespace_list)
+                        self._callback_strs.update(url_pattern._callback_strs)
+                self._namespace_dict[path_prefix] = namespaces
+                self._app_dict[path_prefix] = apps
+                self._reverse_dict[path_prefix] = lookups
+                self._populated = True
+            finally:
+                self._local.populating = False
+
+except (ImportError, ModuleNotFoundError): # <= Django2, Python 2 or 3
+
+    class RegexURLResolver(BaseRegexURLResolver):
+        pass
 
 
 class SiteRegexURLResolver(RegexURLResolver):
@@ -212,6 +297,13 @@ def site_patterns(*args):
 
 try:
     from django.urls.resolvers import RegexPattern
+
+    @lru_cache.lru_cache(maxsize=None)
+    def get_resolver(urlconf=None):
+        if urlconf is None:
+            from django.conf import settings
+            urlconf = settings.ROOT_URLCONF
+        return RegexURLResolver(RegexPattern(r'^/'), urlconf)
 
     def url_sites(regex, view, kwargs=None, name=None, prefix=''):
         #pylint:disable=unused-argument
@@ -256,3 +348,15 @@ except ImportError:
                 if prefix:
                     view = prefix + '.' + view
             return pattern(regex, view, kwargs, name)
+
+    @lru_cache.lru_cache(maxsize=None)
+    def get_resolver(urlconf=None):
+        if urlconf is None:
+            from django.conf import settings
+            urlconf = settings.ROOT_URLCONF
+        return RegexURLResolver(r'^/', urlconf)
+
+
+# Severe monkey patching without which calling the top level resolver
+# `_reverse_with_prefix` method is not updating caches for *path_prefix*.
+base.get_resolver = get_resolver
