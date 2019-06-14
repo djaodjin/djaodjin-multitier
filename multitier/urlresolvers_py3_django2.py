@@ -24,6 +24,11 @@
 
 
 from django.urls.resolvers import URLPattern, URLResolver
+from django.utils.datastructures import MultiValueDict
+from django.utils.regex_helper import normalize
+
+
+from .thread_locals import get_current_site
 
 
 class RegexURLResolver(URLResolver):
@@ -32,7 +37,7 @@ class RegexURLResolver(URLResolver):
     as URL prefix.
     """
     def __init__(self, regex, urlconf_name, *args, **kwargs):
-        super(BaseRegexURLResolver, self).__init__(
+        super(RegexURLResolver, self).__init__(
             regex, urlconf_name, *args, **kwargs)
 
     @staticmethod
