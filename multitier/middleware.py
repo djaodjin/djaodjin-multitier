@@ -96,6 +96,11 @@ class SiteMiddleware(MiddlewareMixin):
             raise Http404(msg)
         return site, path_prefix
 
+    def patch_set_cookies(self, response, domain):
+        if not response.cookies:
+            return
+        for key in response.cookies:
+            response.cookies[key]['domain'] = domain
 
     def process_request(self, request):
         """
@@ -134,6 +139,8 @@ class SiteMiddleware(MiddlewareMixin):
             response[ACCESS_CONTROL_ALLOW_HEADERS] = \
                 "Origin, X-Requested-With, Content-Type, Accept"
             response[ACCESS_CONTROL_ALLOW_ORIGIN] = origin
+            # Patch cookies with `Domain=`
+            self.patch_set_cookies(response, origin_host)
         elif host != origin_host:
             logging.getLogger('django.security.SuspiciousOperation').info(
                 "request %s was not initiated by origin .%s",
