@@ -41,6 +41,8 @@ LOGGER = logging.getLogger(__name__)
 
 ACCESS_CONTROL_ALLOW_HEADERS = 'Access-Control-Allow-Headers'
 ACCESS_CONTROL_ALLOW_ORIGIN = 'Access-Control-Allow-Origin'
+ACCESS_CONTROL_ALLOW_CREDENTIALS = 'Access-Control-Allow-Credentials'
+
 
 class SiteMiddleware(MiddlewareMixin):
 
@@ -129,23 +131,31 @@ class SiteMiddleware(MiddlewareMixin):
         if not origin:
             return response
 
-        host = request.get_host().split(':')[0].lower()
-        origin_host = six.moves.urllib.parse.urlparse(
-            origin).netloc.split(':')[0].lower()
-        if host != origin_host:
+        origin_parsed = six.moves.urllib.parse.urlparse(origin)
+        if not origin_parsed.netloc:
+            return response
+
+        parts = request.get_host().split(':')
+        host = parts[0].lower()
+        port = parts[1] if len(parts) > 1 else None
+        origin_parts =  origin_parsed.netloc.split(':')
+        origin_host = origin_parts[0].lower()
+        origin_port = origin_parts[1] if len(origin_parts) > 1 else None
+        if host != origin_host or port != origin_port:
             if origin_host.startswith('www.'):
                 origin_host = origin_host[4:]
-            if host.endswith('.%s' % origin_host):
+            if host == origin_host or host.endswith('.%s' % origin_host):
                 patch_vary_headers(response, ['Origin'])
                 response[ACCESS_CONTROL_ALLOW_HEADERS] = \
-                    "Origin, X-Requested-With, Content-Type, Accept"
+                  "Origin, X-Requested-With, Content-Type, Accept, X-CSRFToken"
                 response[ACCESS_CONTROL_ALLOW_ORIGIN] = origin
+                response[ACCESS_CONTROL_ALLOW_CREDENTIALS] = "true"
                 # Patch cookies with `Domain=`
                 self.patch_set_cookies(response, origin_host)
             else:
                 logging.getLogger('django.security.SuspiciousOperation').info(
-                    "request %s was not initiated by origin .%s",
-                    request.get_raw_uri(), origin_host)
+                    "request %s was not initiated by origin %s",
+                    request.get_raw_uri(), origin)
         return response
 
 
