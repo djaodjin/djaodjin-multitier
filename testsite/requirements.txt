@@ -1,2 +1,2 @@
-Django==1.11.24
+Django==2.2.7
 deployutils==0.5.13
