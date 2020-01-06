@@ -188,6 +188,11 @@ class BaseSite(models.Model):
             self.tag = ','.join([
                 tag for tag in self.tag.split(',') if tag not in tags])
 
+    @property
+    def has_custom_connection(self):
+        return (self.email_host_user or self.email_host_password or
+            self.email_host or self.email_port)
+
     def get_email_connection(self):
         kwargs = {}
         if self.email_host:
