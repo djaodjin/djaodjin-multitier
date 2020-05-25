@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Djaodjin Inc.
+# Copyright (c) 2020, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -24,10 +24,9 @@
 
 from django.conf import settings as django_settings
 from django.db import DEFAULT_DB_ALIAS
-from django.utils import six
 
 from . import settings
-from .compat import get_app_model_class
+from .compat import get_app_model_class, six
 from .thread_locals import get_current_site
 
 

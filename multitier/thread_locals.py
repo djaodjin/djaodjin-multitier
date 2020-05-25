@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Djaodjin Inc.
+# Copyright (c) 2020, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,10 +26,10 @@ import logging, os
 
 from django.db import connections
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.encoding import iri_to_uri, python_2_unicode_compatible
+from django.utils.encoding import iri_to_uri
 
 from . import settings
-from .compat import reverse, urljoin
+from .compat import python_2_unicode_compatible, reverse, urljoin
 
 try:
     from threading import local

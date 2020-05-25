@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Djaodjin Inc.
+# Copyright (c) 2020, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,12 @@ from django.core.validators import (_lazy_re_compile, RegexValidator,
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils._os import safe_join
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from deployutils.crypt import decrypt, encrypt
 
 from . import settings
+from .compat import python_2_unicode_compatible
 from .utils import get_site_model
 
 

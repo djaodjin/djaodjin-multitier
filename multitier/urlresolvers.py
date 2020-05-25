@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Djaodjin Inc.
+# Copyright (c) 2020, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,11 @@ import re
 
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import base
-from django.utils import lru_cache, six
 from django.utils.datastructures import MultiValueDict
 from django.utils.regex_helper import normalize
 
 from .compat import (RegexURLResolver as DjangoRegexURLResolver,
-    RegexURLPattern as DjangoRegexURLPattern)
+    RegexURLPattern as DjangoRegexURLPattern, lru_cache, six)
 from .thread_locals import get_current_site
 
 
@@ -227,7 +226,7 @@ def site_patterns(*args):
 try:
     from django.urls.resolvers import RegexPattern
 
-    @lru_cache.lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)
     def get_resolver(urlconf=None):
         if urlconf is None:
             from django.conf import settings
@@ -278,7 +277,7 @@ except ImportError:
                     view = prefix + '.' + view
             return pattern(regex, view, kwargs, name)
 
-    @lru_cache.lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)
     def get_resolver(urlconf=None):
         if urlconf is None:
             from django.conf import settings
