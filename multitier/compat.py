@@ -31,7 +31,7 @@ from six.moves.urllib.parse import urlparse, urlunparse, urljoin
 try:
   from functools import lru_cache
 except ImportError: # python < 3
-  from django.utils import lru_cache
+  from django.utils.lru_cache import lru_cache
 
 try:
     from django.utils.encoding import python_2_unicode_compatible
