@@ -22,13 +22,16 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from functools import lru_cache
-
 #pylint: disable=unused-import
 import six
 
 #pylint:disable=no-name-in-module,import-error
 from six.moves.urllib.parse import urlparse, urlunparse, urljoin
+
+try:
+  from functools import lru_cache
+except ImportError: # python < 3
+  from django.utils import lru_cache
 
 try:
     from django.utils.encoding import python_2_unicode_compatible
