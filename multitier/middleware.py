@@ -48,12 +48,17 @@ class SiteMiddleware(MiddlewareMixin):
         site = None
         candidate = None
         path_prefix = ''
+        all_host_allowed = False
         app_domain = 'localhost'
         host = request.get_host().split(':')[0].lower()
         if django_settings.ALLOWED_HOSTS:
-            app_domain = django_settings.ALLOWED_HOSTS[0]
-            if app_domain.startswith('.'):
-                app_domain = app_domain[1:]
+            first_allowed_host = django_settings.ALLOWED_HOSTS[0]
+            if first_allowed_host == '*':
+                all_host_allowed = True
+            else:
+                app_domain = django_settings.ALLOWED_HOSTS[0]
+                if app_domain.startswith('.'):
+                    app_domain = app_domain[1:]
             look = re.match(r'^((?P<subdomain>\S+)\.)?%s(?::.*)?$' % app_domain,
                 host)
             if look and look.group('subdomain'):
@@ -72,7 +77,7 @@ class SiteMiddleware(MiddlewareMixin):
             flt = Q(domain=host)
             if candidate:
                 flt = flt | Q(slug=candidate)
-            if host == app_domain:
+            if all_host_allowed or host == app_domain:
                 flt = flt | Q(slug=settings.DEFAULT_SITE)
             queryset = get_site_model().objects.filter(flt).order_by(
                 '-domain', '-pk')
