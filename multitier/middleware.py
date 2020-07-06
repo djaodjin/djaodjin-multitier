@@ -79,10 +79,13 @@ class SiteMiddleware(MiddlewareMixin):
                 flt = flt | Q(slug=candidate)
             if all_host_allowed or host == app_domain:
                 flt = flt | Q(slug=settings.DEFAULT_SITE)
-            queryset = get_site_model().objects.filter(flt).order_by(
-                '-domain', '-pk')
+            queryset = get_site_model().objects.filter(
+                flt, is_active=True).order_by('-domain', '-pk')
             site = queryset.first()
-            if site is None:
+            if site is None or (site.domain and site.domain != host):
+                # We return a 404 if the site is accessed through
+                # the default domain when a domain is present because
+                # a `dig domain` will return the default domain.
                 #pylint: disable=raising-bad-type
                 raise get_site_model().DoesNotExist
             if not site.is_path_prefix or site.slug != path_prefix:
