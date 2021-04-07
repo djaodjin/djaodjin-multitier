@@ -39,7 +39,7 @@ from django.utils.translation import ugettext_lazy as _
 from deployutils.crypt import decrypt, encrypt
 
 from . import settings
-from .compat import python_2_unicode_compatible
+from .compat import python_2_unicode_compatible, six
 from .utils import get_site_model
 
 
@@ -215,7 +215,14 @@ class BaseSite(models.Model):
     def set_email_host_password(self, raw_password, passphrase=None):
         if not passphrase:
             passphrase = settings.SECRET_KEY
-        self.email_host_password = encrypt(raw_password, passphrase=passphrase)
+        encrypted = encrypt(raw_password, passphrase=passphrase)
+        # b64encode will return `bytes` (Py3) but Django 2.0 is expecting
+        # a `str`, otherwise it wraps those `bytes` into a b'***'.
+        # Note that Django 1.11 will add those `bytes` "as-is".
+        if not isinstance(encrypted, six.string_types):
+             self.email_host_password = encrypted.decode('ascii')
+        else:
+             self.email_host_password = encrypted
 
     def get_email_host_password(self, passphrase=None):
         if not passphrase:
