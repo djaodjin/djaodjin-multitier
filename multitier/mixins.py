@@ -30,7 +30,18 @@ from .thread_locals import cache_provider_db, get_current_site
 from .utils import get_site_model
 
 
-def build_absolute_uri(request, location='/', site=None, with_scheme=True):
+def build_absolute_uri(request, location='/', site=None,
+                       with_scheme=True, force_subdomain=False):
+    """
+    Builds an absolute URL for path *location* on *site*.
+
+    It is sometimes useful to force subdomains URL. For example when DNS is not
+    yet setup and we still want to be able to access the newly created site.
+
+    If *force_subdomain* is ``True``, the site.domain field is not
+    used, regardless of its value (valid or null). By default site.domain
+    is used when present.
+    """
     if site is None:
         site = get_current_site()
     else:
@@ -41,25 +52,26 @@ def build_absolute_uri(request, location='/', site=None, with_scheme=True):
             except site_model.DoesNotExist:
                 site = None
     actual_domain = ""
-    if site and site.domain:
-        actual_domain = site.domain
-    elif site:
-        subdomain = site.as_subdomain()
-        is_path_prefix = site.is_path_prefix
-        force_path_prefix = False
-        base_domain = settings.DEFAULT_DOMAIN
-        if request:
-            hostname = request.get_host()
-            if hostname.startswith('localhost'):
-                base_domain = hostname
-                force_path_prefix = True
-        if not (force_path_prefix or is_path_prefix):
-            actual_domain = '%s.%s' % (subdomain, base_domain)
-        elif not location.startswith('/%s/' % subdomain):
-            # In local development, we force use of path prefixes.
-            # At the same time we don't want to double the path prefix
-            # when it was already added by ``reverse()``.
-            actual_domain = '%s/%s' % (base_domain, subdomain)
+    if site:
+        if site.domain and not force_subdomain:
+            actual_domain = site.domain
+        else:
+            subdomain = site.as_subdomain()
+            is_path_prefix = site.is_path_prefix
+            force_path_prefix = False
+            base_domain = settings.DEFAULT_DOMAIN
+            if request:
+                hostname = request.get_host()
+                if hostname.startswith('localhost'):
+                    base_domain = hostname
+                    force_path_prefix = True
+            if not (force_path_prefix or is_path_prefix):
+                actual_domain = '%s.%s' % (subdomain, base_domain)
+            elif not location.startswith('/%s/' % subdomain):
+                # In local development, we force use of path prefixes.
+                # At the same time we don't want to double the path prefix
+                # when it was already added by ``reverse()``.
+                actual_domain = '%s/%s' % (base_domain, subdomain)
     elif request:
         actual_domain = request.get_host()
     else:
