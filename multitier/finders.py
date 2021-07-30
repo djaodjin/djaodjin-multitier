@@ -34,6 +34,44 @@ from django.contrib.staticfiles import utils
 from .thread_locals import get_current_site
 from .settings import STATICFILES_DIRS
 
+
+def get_current_theme_assets_dirs():
+    """
+    Returns a path which is the directory root of static assets for a theme.
+    """
+    roots = []
+    site = get_current_site()
+    if site is not None:
+        # ``site`` could be ``None`` when this code is used through
+        # a manage.py command (ex: collectstatic).
+        #
+        # Here we are inserting the *theme* at a natural place,
+        # i.e. before the path postfix matching STATIC_URL.
+        url_parts = []
+        for part in django_settings.STATIC_URL.split('/'):
+            if part:
+                url_parts.append(part)
+        for static_dir in STATICFILES_DIRS:
+            drive, path = os.path.splitdrive(static_dir)
+            dir_parts = path.split(os.sep)
+            nb_dir_parts = len(dir_parts)
+            nb_url_parts = len(url_parts)
+            cut_point = nb_dir_parts - nb_url_parts
+            if cut_point > 0:
+                for dir_part, url_part in zip(
+                    dir_parts[cut_point:], url_parts):
+                    if dir_part != url_part:
+                        cut_point = nb_dir_parts
+                        break
+            else:
+                cut_point = nb_dir_parts
+            for theme in get_current_site().get_templates():
+                roots.append(os.path.join(drive, os.sep,
+                    *(dir_parts[:cut_point] + ['themes', theme]
+                      + dir_parts[cut_point:])))
+    return roots
+
+
 #pylint:disable=no-member
 class MultitierFileSystemFinder(FileSystemFinder):
     """
@@ -44,36 +82,7 @@ class MultitierFileSystemFinder(FileSystemFinder):
         #pylint:disable=too-many-locals
         locations = []
         storages = OrderedDict()
-        roots = []
-        site = get_current_site()
-        if site is not None:
-            # ``site`` could be ``None`` when this code is used through
-            # a manage.py command (ex: collectstatic).
-            #
-            # Here we are inserting the *theme* at a natural place,
-            # i.e. before the path postfix matching STATIC_URL.
-            url_parts = []
-            for part in django_settings.STATIC_URL.split('/'):
-                if part:
-                    url_parts.append(part)
-            for static_dir in STATICFILES_DIRS:
-                drive, path = os.path.splitdrive(static_dir)
-                dir_parts = path.split(os.sep)
-                nb_dir_parts = len(dir_parts)
-                nb_url_parts = len(url_parts)
-                cut_point = nb_dir_parts - nb_url_parts
-                if cut_point > 0:
-                    for dir_part, url_part in zip(
-                        dir_parts[cut_point:], url_parts):
-                        if dir_part != url_part:
-                            cut_point = nb_dir_parts
-                            break
-                else:
-                    cut_point = nb_dir_parts
-                for theme in get_current_site().get_templates():
-                    roots.append(os.path.join(drive, os.sep,
-                        *(dir_parts[:cut_point] + [theme]
-                          + dir_parts[cut_point:])))
+        roots = get_current_theme_assets_dirs()
         for root in roots:
             prefix = ''
             if (prefix, root) not in locations:

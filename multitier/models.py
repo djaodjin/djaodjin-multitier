@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Djaodjin Inc.
+# Copyright (c) 2021, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,7 @@ class BaseSite(models.Model):
         swappable = 'MULTITIER_SITE_MODEL'
         abstract = True
 
-    def __str__(self): #pylint: disable=super-on-old-class
+    def __str__(self):
         return self.slug
 
     def as_base(self):
@@ -220,9 +220,9 @@ class BaseSite(models.Model):
         # a `str`, otherwise it wraps those `bytes` into a b'***'.
         # Note that Django 1.11 will add those `bytes` "as-is".
         if not isinstance(encrypted, six.string_types):
-             self.email_host_password = encrypted.decode('ascii')
+            self.email_host_password = encrypted.decode('ascii')
         else:
-             self.email_host_password = encrypted
+            self.email_host_password = encrypted
 
     def get_email_host_password(self, passphrase=None):
         if not passphrase:
@@ -233,7 +233,7 @@ class BaseSite(models.Model):
 @python_2_unicode_compatible
 class Site(BaseSite):
 
-    def __str__(self): #pylint: disable=super-on-old-class
+    def __str__(self):
         return self.slug
 
 

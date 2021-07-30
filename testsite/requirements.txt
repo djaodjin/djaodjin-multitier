@@ -1,2 +1,2 @@
-Django==1.11.26
-deployutils==0.5.13
+Django==2.2.24
+djaodjin-deployutils==0.6.0

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, DjaoDjin inc.
+# Copyright (c) 2021, DjaoDjin inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,9 @@ import six
 from six.moves.urllib.parse import urlparse, urlunparse, urljoin
 
 try:
-  from functools import lru_cache
+    from functools import lru_cache
 except ImportError: # python < 3
-  from django.utils.lru_cache import lru_cache
+    from django.utils.lru_cache import lru_cache
 
 try:
     from django.utils.encoding import python_2_unicode_compatible
