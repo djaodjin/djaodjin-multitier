@@ -48,7 +48,8 @@ _SETTINGS = {
     'ROUTER_APPS': ('auth', 'sessions', 'contenttypes'),
     'ROUTER_TABLES': [],
     'THEMES_DIRS': [os.path.join(settings.BASE_DIR, 'themes')],
-    'STATICFILES_DIRS': settings.STATICFILES_DIRS,
+    'STATICFILES_DIRS': (tuple(settings.STATICFILES_DIRS) +
+        (settings.STATIC_ROOT,) if settings.STATIC_ROOT else tuple([])),
     'SECRET_KEY': settings.SECRET_KEY
 }
 _SETTINGS.update(getattr(settings, 'MULTITIER', {}))
