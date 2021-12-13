@@ -49,8 +49,8 @@ class SiteMiddleware(MiddlewareMixin):
         candidate = None
         path_prefix = ''
         all_host_allowed = False
-        app_domain = 'localhost'
         host = request.get_host().split(':')[0].lower()
+        app_domain = host
         if django_settings.ALLOWED_HOSTS:
             first_allowed_host = django_settings.ALLOWED_HOSTS[0]
             if first_allowed_host == '*':

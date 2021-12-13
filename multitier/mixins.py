@@ -79,10 +79,9 @@ def build_absolute_uri(request, location='/', site=None,
 
     result = "%(domain)s%(path)s" % {'domain': actual_domain, 'path': location}
     if with_scheme:
-        if request:
+        scheme = 'http'
+        if request and not result.startswith('localhost'):
             scheme = request.scheme
-        else:
-            scheme = 'http'
         result = '%s://%s' % (scheme, result)
     return result
 
