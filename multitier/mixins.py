@@ -29,6 +29,10 @@ from .compat import get_model_class, import_string
 from .thread_locals import cache_provider_db, get_current_site
 from .utils import get_site_model
 
+def is_localhost(hostname):
+    return bool(
+        hostname.startswith('localhost') or hostname.startswith('127.0.0.1'))
+
 
 def build_absolute_uri(request, location='/', site=None,
                        with_scheme=True, force_subdomain=False):
@@ -62,7 +66,7 @@ def build_absolute_uri(request, location='/', site=None,
             base_domain = settings.DEFAULT_DOMAIN
             if request:
                 hostname = request.get_host()
-                if hostname.startswith('localhost'):
+                if is_localhost(hostname):
                     base_domain = hostname
                     force_path_prefix = True
             if not (force_path_prefix or is_path_prefix):
@@ -80,7 +84,7 @@ def build_absolute_uri(request, location='/', site=None,
     result = "%(domain)s%(path)s" % {'domain': actual_domain, 'path': location}
     if with_scheme:
         scheme = 'http'
-        if request and not result.startswith('localhost'):
+        if request and not is_localhost(result):
             scheme = request.scheme
         result = '%s://%s' % (scheme, result)
     return result
