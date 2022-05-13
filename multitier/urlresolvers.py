@@ -59,7 +59,8 @@ class SitePrefixPattern(object):
             return path[len(path_prefix):], (), {}
         return None
 
-    def check(self):
+    @staticmethod
+    def check():
         return []
 
     def describe(self):
@@ -95,7 +96,7 @@ class BaseRegexURLResolver(DjangoRegexURLResolver):
         # infinite recursion. Concurrent threads may call this at the same
         # time and will need to continue, so set 'populating' on a
         # thread-local variable.
-        #pylint:disable=protected-access,too-many-locals
+        #pylint:disable=protected-access,too-many-locals,too-many-nested-blocks
         if getattr(self._local, 'populating', False):
             return
         try:
@@ -189,8 +190,8 @@ except (ImportError, SyntaxError): # <= Django2, Python 2
     class RegexURLResolver(BaseRegexURLResolver):
         pass
 
-except ModuleNotFoundError: # <= Django2, Python 3
-
+except ModuleNotFoundError: #pylint:disable=bad-except-order
+    # <= Django2, Python 3
     class RegexURLResolver(BaseRegexURLResolver):
         pass
 
@@ -250,12 +251,11 @@ try:
                 app_name=app_name,
                 namespace=namespace,
             )
-        elif callable(view):
+        if callable(view):
             pattern = RegexPattern(regex, name=name, is_endpoint=True)
             return DjangoRegexURLPattern(pattern, view, kwargs, name)
-        else:
-            raise TypeError('view must be a callable or a list/tuple'\
-                ' in the case of include().')
+        raise TypeError('view must be a callable or a list/tuple'\
+            ' in the case of include().')
 
 except ImportError:
     def url_sites(regex, view, kwargs=None, name=None, prefix='',
@@ -268,14 +268,14 @@ except ImportError:
         if isinstance(view, (list, tuple)):
             # For include(...) processing.
             return resolver(regex, view[0], kwargs, *view[1:])
-        else:
-            if isinstance(view, six.string_types):
-                if not view:
-                    raise ImproperlyConfigured('Empty URL pattern view'\
-                        ' name not permitted (for pattern %r)' % regex)
-                if prefix:
-                    view = prefix + '.' + view
-            return pattern(regex, view, kwargs, name)
+
+        if isinstance(view, six.string_types):
+            if not view:
+                raise ImproperlyConfigured('Empty URL pattern view'\
+                    ' name not permitted (for pattern %r)' % regex)
+            if prefix:
+                view = prefix + '.' + view
+        return pattern(regex, view, kwargs, name)
 
     @lru_cache(maxsize=None)
     def get_resolver(urlconf=None):

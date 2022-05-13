@@ -1,4 +1,4 @@
-# Copyright (c) 2019, DjaoDjin inc.
+# Copyright (c) 2022, DjaoDjin inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,9 @@
 from django import template
 from django.templatetags.static import StaticNode
 
-from ..compat import urljoin
+from ..compat import six, urljoin
 from ..mixins import build_absolute_uri
+from .. import settings
 from ..thread_locals import get_current_site
 
 
@@ -37,7 +38,7 @@ class MultitierStaticNode(StaticNode):
 
     def url(self, context):
         path = super(MultitierStaticNode, self).url(context)
-        return site_prefixed(path)
+        return site_url(path)
 
 
 @register.tag('static')
@@ -62,11 +63,6 @@ def do_static(parser, token):
 
 
 @register.filter()
-def absolute_uri(request):
-    return build_absolute_uri(request)
-
-
-@register.filter()
 def asset(path):
     """
     Adds the appropriate url or path prefix.
@@ -75,23 +71,33 @@ def asset(path):
     of Django templates, ``{{ path|asset }}`` works in both Django and Jinja2
     templates.
     """
-    return site_prefixed(path)
+    return site_url(path)
 
 
 @register.filter()
-def site_prefixed(path):
-    if path is None:
-        path = ''
-    site = get_current_site()
-    if site and site.path_prefix:
-        path_prefix = '/%s' % site.path_prefix
-    else:
-        path_prefix = ''
-    if path:
-        # We have an actual path instead of generating a prefix that will
-        # be placed in front of static urls (ie. {{'pricing'|site_prefixed}}
-        # insted of {{''|site_prefixed}}{{ASSET_URL}}).
-        path_prefix += '/'
-        if path.startswith('/'):
-            path = path[1:]
-    return urljoin(path_prefix, path)
+def site_printable_name(request):
+    if hasattr(request, 'site'):
+        return request.site.printable_name
+    return settings.APP_NAME
+
+
+@register.filter()
+def site_url(request):
+    if isinstance(request, six.string_types):
+        path = request
+        if path is None:
+            path = ''
+        site = get_current_site()
+        if site and site.path_prefix:
+            path_prefix = '/%s' % site.path_prefix
+        else:
+            path_prefix = ''
+        if path:
+            # We have an actual path instead of generating a prefix that will
+            # be placed in front of static urls (ie. {{'pricing'|site_url}}
+            # insted of {{''|site_url}}{{ASSET_URL}}).
+            path_prefix += '/'
+            if path.startswith('/'):
+                path = path[1:]
+        return urljoin(path_prefix, path)
+    return build_absolute_uri(request)

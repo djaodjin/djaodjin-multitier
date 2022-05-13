@@ -7,11 +7,18 @@ https://docs.djangoproject.com/en/1.7/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
+import os, sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+RUN_DIR = os.getenv('RUN_DIR', os.getcwd())
+DB_NAME = os.path.join(RUN_DIR, 'db.sqlite')
+LOG_FILE = os.path.join(RUN_DIR, 'testsite-app.log')
+
+DEBUG = True
+ALLOWED_HOSTS = ('*',)
 APP_NAME = os.path.basename(BASE_DIR)
+
 
 def load_config(confpath):
     '''
@@ -45,17 +52,25 @@ def load_config(confpath):
     else:
         sys.stderr.write('warning: config file %s does not exist.\n' % confpath)
 
-load_config(os.path.join(BASE_DIR, 'credentials'))
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
+load_config(os.path.join(
+    os.getenv('TESTSITE_SETTINGS_LOCATION', RUN_DIR), 'credentials'))
+load_config(os.path.join(
+    os.getenv('TESTSITE_SETTINGS_LOCATION', RUN_DIR), 'site.conf'))
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if not hasattr(sys.modules[__name__], "SECRET_KEY"):
+    from random import choice
+    SECRET_KEY = "".join([choice(
+        "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^*-_=+") for i in range(50)])
 
-ALLOWED_HOSTS = ['localhost']
+JWT_SECRET_KEY = SECRET_KEY
+JWT_ALGORITHM = 'HS256'
+
+if os.getenv('DEBUG'):
+    # Enable override on command line.
+    DEBUG = bool(int(os.getenv('DEBUG')) > 0)
+
 
 # Application definition
-
 INSTALLED_APPS = (
     'django_extensions',
     'django.contrib.admin',
@@ -81,7 +96,6 @@ MIDDLEWARE = (
 MIDDLEWARE_CLASSES = MIDDLEWARE
 
 ROOT_URLCONF = 'testsite.urls'
-
 WSGI_APPLICATION = 'testsite.wsgi.application'
 
 # Templates
@@ -100,6 +114,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.media',
     'django.core.context_processors.static',
+    'django.template.context_processors.request',
     'multitier.context_processors.site',
     'multitier.context_processors.features_debug'
 )
@@ -133,6 +148,8 @@ DATABASES = {
     }
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 if os.getenv('MULTITIER_DB_FILE'):
     MULTITIER_DB_FILE = os.getenv('MULTITIER_DB_FILE')
     MULTITIER_DB_NAME = os.path.splitext(
@@ -144,25 +161,18 @@ if os.getenv('MULTITIER_DB_FILE'):
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 MEDIA_URL = '/media/'
-
 MEDIA_ROOT = BASE_DIR + '/testsite/media'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 STATIC_ROOT = BASE_DIR + '/testsite/static'
-
 STATIC_URL = '/static/'
 
 LOGGING = {

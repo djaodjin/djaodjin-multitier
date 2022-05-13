@@ -22,10 +22,10 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pylint: disable=unused-import
+#pylint: disable=unused-import,bad-except-order
+#pylint:disable=no-name-in-module,import-error,import-outside-toplevel
 import six
 
-#pylint:disable=no-name-in-module,import-error
 from six.moves.urllib.parse import urlparse, urlunparse, urljoin
 
 try:
@@ -33,10 +33,12 @@ try:
 except ImportError: # python < 3
     from django.utils.lru_cache import lru_cache
 
+
 try:
-    from django.utils.encoding import python_2_unicode_compatible
-except ImportError: # django < 3.0
-    python_2_unicode_compatible = six.python_2_unicode_compatible
+    from django.template import Origin
+except ImportError:
+    Origin = None
+
 
 try:
     from django.urls import (NoReverseMatch, URLPattern as RegexURLPattern,
@@ -49,6 +51,11 @@ except ModuleNotFoundError: #pylint:disable=undefined-variable
     from django.core.urlresolvers import (NoReverseMatch, RegexURLPattern,
         RegexURLResolver, reverse, reverse_lazy)
 
+try:
+    from django.urls import include, re_path
+except ImportError: # <= Django 2.0, Python<3.6
+    from django.conf.urls import include, url as re_path
+
 
 try:
     from django.utils.module_loading import import_string
@@ -57,9 +64,15 @@ except ImportError: # django < 1.7
 
 
 try:
-    from django.template import Origin
-except ImportError:
-    Origin = None
+    from django.utils.encoding import python_2_unicode_compatible
+except ImportError: # django < 3.0
+    python_2_unicode_compatible = six.python_2_unicode_compatible
+
+
+try:
+    from django.utils.translation import gettext_lazy
+except ImportError: # django < 3.0
+    from django.utils.translation import ugettext_lazy as gettext_lazy
 
 
 def get_model_class(full_name, settings_meta=None):

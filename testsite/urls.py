@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Djaodjin Inc.
+# Copyright (c) 2022, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -22,18 +22,18 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from django.conf.urls import include, url
 from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 
+from multitier.compat import include, re_path
 from multitier.urlresolvers import site_patterns
 
 
 urlpatterns = site_patterns(
-    url(r'^', include('django.contrib.auth.urls')),
-    url(r'^accounts/profile/',
+    re_path(r'^', include('django.contrib.auth.urls')),
+    re_path(r'^accounts/profile/',
         login_required(
             TemplateView.as_view(template_name='index.html')),
         name='accounts_profile'),
-    url(r'^$', TemplateView.as_view(template_name='index.html')),
+    re_path(r'^$', TemplateView.as_view(template_name='index.html')),
 )

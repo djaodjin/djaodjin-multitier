@@ -47,7 +47,7 @@ def build_absolute_uri(request, location='/', site=None,
     is used when present.
     """
     if site is None:
-        site = get_current_site()
+        site = request.site if hasattr(request, 'site') else get_current_site()
     else:
         site_model = get_site_model()
         if not isinstance(site, site_model):

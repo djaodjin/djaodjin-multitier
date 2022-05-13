@@ -1,21 +1,26 @@
 [
 {
     "fields": {
-      "slug": "djaodjin-multitier"
+      "slug": "djaodjin-multitier",
+      "is_active": true
     },
     "model": "multitier.Site", "pk": 1
 },
 {
     "fields": {
       "slug": "example1",
-      "db_name": "example1"
+      "db_name": "example1",
+      "is_active": true,
+      "is_path_prefix": true
     },
     "model": "multitier.Site", "pk": 2
 },
 {
     "fields": {
       "slug": "example2",
-      "db_name": "example2"
+      "db_name": "example2",
+      "is_active": true,
+      "is_path_prefix": true
     },
     "model": "multitier.Site", "pk": 3
 }

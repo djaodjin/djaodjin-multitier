@@ -119,7 +119,6 @@ class SiteMiddleware(MiddlewareMixin):
         set_current_site(site, path_prefix,
             default_scheme=request.scheme, default_host=request.get_host(),
             request=request)
-        return None
 
 
 class SetRemoteAddrFromForwardedFor(MiddlewareMixin):
@@ -132,4 +131,3 @@ class SetRemoteAddrFromForwardedFor(MiddlewareMixin):
         if request.META.get('REMOTE_ADDR', '127.0.0.1') == '127.0.0.1':
             request.META.update({'REMOTE_ADDR':
                 request.META.get('HTTP_X_FORWARDED_FOR', '127.0.0.1')})
-        return None
