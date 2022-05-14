@@ -184,24 +184,18 @@ LOGGING = {
         }
     },
     'handlers': {
-        'logfile':{
+        'log':{
             'level':'DEBUG',
             'class':'logging.StreamHandler',
         },
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
     },
     'loggers': {
         'multitier': {
-            'handlers': ['logfile'],
+            'handlers': ['log'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'django.request': {
-            'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         },
@@ -210,7 +204,24 @@ LOGGING = {
 #             'level': 'DEBUG',
 #             'propagate': True,
 #        },
+        'django': {
+            'handlers': ['log'],
+        },
+        # This is the root logger.
+        # The level will only be taken into account if the record is not
+        # propagated from a child logger.
+        #https://docs.python.org/2/library/logging.html#logging.Logger.propagate
+        '': {
+            'handlers': ['log'],
+            'level': 'WARNING'
+        }
     }
 }
+if not DEBUG and LOG_FILE:
+    LOGGING['handlers']['log'].update({
+        'class':'logging.handlers.WatchedFileHandler',
+        'filename': LOG_FILE
+    })
+
 
 LOGIN_REDIRECT_URL = 'accounts_profile'
