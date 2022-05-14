@@ -3,6 +3,6 @@ djaodjin-deployutils==0.9.0
 
 # testsite-only
 coverage==6.3.2
-django-debug-toolbar==2.2.9 # version 3.4.0 requires Django>=3.2
+django-debug-toolbar==2.2.1 # 1.11 does not support Django 2.2, 3.4.0 requires Django>=3.2
 django-extensions==3.1.5
 gunicorn==20.0.4
