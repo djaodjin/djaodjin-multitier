@@ -1,0 +1,6 @@
+0.1.22
+
+  * compatibles with Django4.0
+  * handles webhook proxies better
+
+ -- Sebastien Mirolo <smirolo@djaodjin.com>  Tue, 24 May 2022 19:30:00 -0700

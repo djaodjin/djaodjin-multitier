@@ -13,6 +13,12 @@ of the presentation at a SF Django Meetup are useful to understand how
 middlewares, thread locals and template loaders were used to implement
 multi-tier applications here.
 
+Tested with
+
+- **Python:** 3.7, **Django:** 2.2 ([LTS](https://www.djangoproject.com/download/)), **Django Rest Framework:** 3.12
+- **Python:** 3.7, **Django:** 3.2 (latest), **Django Rest Framework:** 3.12
+- **Python:** 2.7, **Django:** 1.11 (legacy), **Django Rest Framework:** 3.9.4
+
 
 Development
 ===========
@@ -26,3 +32,14 @@ run the testsite webapp.
     $ pip install -r testsite/requirements.txt
     $ make initdb
     $ python manage.py runserver
+
+
+Release Notes
+=============
+
+0.1.22
+
+  * compatibles with Django4.0
+  * handles webhook proxies better
+
+[previous release notes](changelog)
