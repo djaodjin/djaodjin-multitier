@@ -97,7 +97,6 @@ def site_url(request):
             # be placed in front of static urls (ie. {{'pricing'|site_url}}
             # insted of {{''|site_url}}{{ASSET_URL}}).
             path_prefix += '/'
-            if path.startswith('/'):
-                path = path[1:]
+            path = path.lstrip('/')
         return urljoin(path_prefix, path)
-    return build_absolute_uri(request)
+    return build_absolute_uri(request).rstrip('/')
