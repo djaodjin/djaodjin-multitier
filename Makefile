@@ -31,8 +31,12 @@ install:: install-conf
 	cd $(srcDir) && $(PYTHON) ./setup.py --quiet \
 		build -b $(CURDIR)/build install
 
+
 install-conf:: $(DESTDIR)$(CONFIG_DIR)/credentials \
                 $(DESTDIR)$(CONFIG_DIR)/gunicorn.conf
+	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/db
+	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/run
+	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/log/gunicorn
 
 
 build-assets: vendor-assets-prerequisites
@@ -42,6 +46,7 @@ vendor-assets-prerequisites:
 
 
 $(DESTDIR)$(CONFIG_DIR)/credentials: $(srcDir)/testsite/etc/credentials.conf
+	$(installDirs) $(dir $@)
 	@if [ ! -f $@ ] ; then \
 		sed \
 		-e "s,\%(SECRET_KEY)s,`$(PYTHON) -c 'import sys ; from random import choice ; sys.stdout.write("".join([choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^*-_=+") for i in range(50)]))'`," \
@@ -52,7 +57,7 @@ $(DESTDIR)$(CONFIG_DIR)/credentials: $(srcDir)/testsite/etc/credentials.conf
 
 
 $(DESTDIR)$(CONFIG_DIR)/gunicorn.conf: $(srcDir)/testsite/etc/gunicorn.conf
-	install -d $(dir $@)
+	$(installDirs) $(dir $@)
 	[ -f $@ ] || sed \
 		-e 's,%(LOCALSTATEDIR)s,$(LOCALSTATEDIR),' $< > $@
 
