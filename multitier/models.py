@@ -151,7 +151,7 @@ class BaseSite(models.Model):
         return self
 
     def as_subdomain(self):
-        return self.slug
+        return self.slug if self.slug != settings.DEFAULT_SITE else ""
 
     @property
     def printable_name(self):

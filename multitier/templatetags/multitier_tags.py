@@ -78,7 +78,7 @@ def asset(path):
 def site_printable_name(request):
     if hasattr(request, 'site'):
         return request.site.printable_name
-    return settings.APP_NAME
+    return settings.DEFAULT_SITE
 
 
 @register.filter()

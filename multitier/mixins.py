@@ -69,13 +69,16 @@ def build_absolute_uri(request, location='/', site=None,
                 if is_localhost(hostname):
                     base_domain = hostname
                     force_path_prefix = True
-            if not (force_path_prefix or is_path_prefix):
-                actual_domain = '%s.%s' % (subdomain, base_domain)
-            elif not location.startswith('/%s/' % subdomain):
-                # In local development, we force use of path prefixes.
-                # At the same time we don't want to double the path prefix
-                # when it was already added by ``reverse()``.
-                actual_domain = '%s/%s' % (base_domain, subdomain)
+            if subdomain:
+                if not (force_path_prefix or is_path_prefix):
+                    actual_domain = '%s.%s' % (subdomain, base_domain)
+                elif not location.startswith('/%s/' % subdomain):
+                    # In local development, we force use of path prefixes.
+                    # At the same time we don't want to double the path prefix
+                    # when it was already added by ``reverse()``.
+                    actual_domain = '%s/%s' % (base_domain, subdomain)
+            else:
+                actual_domain = base_domain
     elif request:
         actual_domain = request.get_host()
     else:
