@@ -1,5 +1,5 @@
-Django==3.2.14
-djaodjin-deployutils==0.9.1
+Django==3.2.15
+djaodjin-deployutils==0.10.0
 
 # testsite-only
 coverage==6.3.2

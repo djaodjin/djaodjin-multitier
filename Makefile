@@ -42,6 +42,18 @@ install-conf:: $(DESTDIR)$(CONFIG_DIR)/credentials \
 build-assets: vendor-assets-prerequisites
 
 
+clean: clean-dbs
+	[ ! -f $(srcDir)/package-lock.json ] || rm $(srcDir)/package-lock.json
+	find $(srcDir) -name '__pycache__' -exec rm -rf {} +
+	find $(srcDir) -name '*~' -exec rm -rf {} +
+
+clean-dbs:
+	[ ! -f $(DB_NAME) ] || rm $(DB_NAME)
+	[ ! -f $(RUN_DIR)/example1.sqlite ] || rm $(RUN_DIR)/example1.sqlite
+	[ ! -f $(RUN_DIR)/example2.sqlite ] || rm $(RUN_DIR)/example2.sqlite
+	[ ! -f $(srcDir)/testsite-app.log ] || rm $(srcDir)/testsite-app.log
+
+
 vendor-assets-prerequisites:
 
 
@@ -62,8 +74,7 @@ $(DESTDIR)$(CONFIG_DIR)/gunicorn.conf: $(srcDir)/testsite/etc/gunicorn.conf
 		-e 's,%(LOCALSTATEDIR)s,$(LOCALSTATEDIR),' $< > $@
 
 
-initdb: install-conf
-	-rm -f $(srcDir)/db.sqlite $(srcDir)/example1.sqlite $(srcDir)/example2.sqlite
+initdb: clean-dbs install-conf
 	cd $(srcDir) && $(MANAGE) migrate $(RUNSYNCDB) --noinput
 	cd $(srcDir) && $(MANAGE) loaddata testsite/fixtures/test_data.json
 	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite $(MANAGE) migrate --database example1 --noinput
