@@ -37,9 +37,8 @@ run the testsite webapp.
 Release Notes
 =============
 
-0.1.22
+0.1.24
 
-  * compatibles with Django4.0
-  * handles webhook proxies better
+  * sets actual_domain for default site
 
 [previous release notes](changelog)
