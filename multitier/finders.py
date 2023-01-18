@@ -65,9 +65,9 @@ def get_current_theme_assets_dirs():
                         break
             else:
                 cut_point = nb_dir_parts
-            for theme in get_current_site().get_templates():
+            for theme in site.get_templates():
                 roots.append(os.path.join(drive, os.sep,
-                    *(dir_parts[:cut_point] + ['themes', theme]
+                    *(dir_parts[:cut_point] + [theme]
                       + dir_parts[cut_point:])))
     return roots
 
