@@ -1,3 +1,9 @@
+0.1.25
+
+ * search path for theme assets should be fully defined in settings.py
+
+ -- Sebastien Mirolo <smirolo@djaodjin.com>  Thu,  2 Feb 2023 20:53:00 -0700
+
 0.1.24
 
   * sets actual_domain for default site

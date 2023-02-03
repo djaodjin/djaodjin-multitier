@@ -37,8 +37,8 @@ run the testsite webapp.
 Release Notes
 =============
 
-0.1.24
+0.1.25
 
-  * sets actual_domain for default site
+ * search path for theme assets should be fully defined in settings.py
 
 [previous release notes](changelog)
