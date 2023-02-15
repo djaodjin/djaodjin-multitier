@@ -1,4 +1,4 @@
-Django==3.2.15
+Django==3.2.18
 djaodjin-deployutils==0.10.0
 
 # testsite-only
