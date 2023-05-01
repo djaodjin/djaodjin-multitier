@@ -28,6 +28,8 @@ from . import settings
 from .compat import get_model_class, import_string
 from .thread_locals import cache_provider_db, get_current_site
 from .utils import get_site_model
+from .compat import urlparse
+
 
 def is_localhost(hostname):
     return bool(
@@ -46,6 +48,12 @@ def build_absolute_uri(request, location='/', site=None,
     used, regardless of its value (valid or null). By default site.domain
     is used when present.
     """
+    parts = urlparse(location)
+    if parts.scheme and parts.netloc:
+        # If we already have an absolute URI then we have not processing
+        # to do and just return it "as is".
+        return location
+
     if site is None:
         site = request.site if hasattr(request, 'site') else get_current_site()
     else:
@@ -55,7 +63,9 @@ def build_absolute_uri(request, location='/', site=None,
                 site = site_model.objects.get(slug=site)
             except site_model.DoesNotExist:
                 site = None
-    actual_domain = ""
+    actual_domain = settings.DEFAULT_DOMAIN
+    if request:
+        actual_domain = request.get_host()
     if site:
         if site.domain and not force_subdomain:
             actual_domain = site.domain
@@ -63,7 +73,6 @@ def build_absolute_uri(request, location='/', site=None,
             subdomain = site.as_subdomain()
             is_path_prefix = site.is_path_prefix
             force_path_prefix = False
-            base_domain = settings.DEFAULT_DOMAIN
             if request:
                 base_domain = request.get_host()
                 if is_localhost(base_domain):
@@ -76,12 +85,6 @@ def build_absolute_uri(request, location='/', site=None,
                     # At the same time we don't want to double the path prefix
                     # when it was already added by ``reverse()``.
                     actual_domain = '%s/%s' % (base_domain, subdomain)
-            else:
-                actual_domain = base_domain
-    elif request:
-        actual_domain = request.get_host()
-    else:
-        actual_domain = settings.DEFAULT_DOMAIN
 
     result = "%(domain)s%(path)s" % {'domain': actual_domain, 'path': location}
     if with_scheme:
