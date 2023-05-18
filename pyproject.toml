@@ -1,0 +1,41 @@
+# This pyproject.toml seems to work to build a new package
+# when `setuptools==67.6.1` is installed.
+[project]
+name = "djaodjin-multitier"
+dynamic = ["version"]
+description = "Django application that implements shared tenancy"
+readme = "README.md"
+requires-python = ">=3.7"
+license =  {text = "BSD-2-Clause"}
+keywords = ["django", "multitier", "databases", "routers"]
+authors = [
+  {name = "The DjaoDjin Team", email = "help@djaodjin.com"}
+]
+maintainers = [
+  {name = "The DjaoDjin Team", email = "help@djaodjin.com"}
+]
+classifiers = [
+  "Framework :: Django",
+  "Environment :: Web Environment",
+  "Programming Language :: Python",
+  "License :: OSI Approved :: BSD License"
+]
+dependencies = [
+  "Django>=1.11",
+  "djaodjin-deployutils>=0.5.23"
+]
+
+[project.urls]
+repository = "https://github.com/djaodjin/djaodjin-multitier"
+documentation = "https://djaodjin-multitier.readthedocs.io/"
+changelog = "https://github.com/djaodjin/djaodjin-multitier/changelog"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["multitier*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "multitier.__version__"}

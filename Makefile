@@ -13,6 +13,8 @@ installDirs   ?= install -d
 installFiles  := install -p -m 644
 NPM           ?= npm
 PYTHON        := $(binDir)/python
+PIP           := $(binDir)/pip
+TWINE         := $(binDir)/twine
 
 ASSETS_DIR    := $(srcDir)/htdocs/static
 RUN_DIR       ?= $(srcDir)
@@ -28,8 +30,7 @@ RUNSYNCDB     = $(if $(findstring --run-syncdb,$(shell cd $(srcDir) && $(MANAGE)
 
 
 install:: install-conf
-	cd $(srcDir) && $(PYTHON) ./setup.py --quiet \
-		build -b $(CURDIR)/build install
+	cd $(srcDir) && $(PIP) install .
 
 
 install-conf:: $(DESTDIR)$(CONFIG_DIR)/credentials \
@@ -37,6 +38,12 @@ install-conf:: $(DESTDIR)$(CONFIG_DIR)/credentials \
 	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/db
 	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/run
 	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/log/gunicorn
+
+
+dist:
+	$(PYTHON) -m build
+	$(TWINE) check dist/*
+	$(TWINE) upload dist/*
 
 
 build-assets: vendor-assets-prerequisites
