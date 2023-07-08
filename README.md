@@ -13,13 +13,6 @@ of the presentation at a SF Django Meetup are useful to understand how
 middlewares, thread locals and template loaders were used to implement
 multi-tier applications here.
 
-Tested with
-
-- **Python:** 3.7, **Django:** 3.2 ([LTS](https://www.djangoproject.com/download/)), **Django Rest Framework:** 3.12
-- **Python:** 3.10, **Django:** 4.0 (latest), **Django Rest Framework:** 3.12
-- **Python:** 2.7, **Django:** 1.11 (legacy), **Django Rest Framework:** 3.9.4
-
-
 Development
 ===========
 
@@ -27,18 +20,25 @@ After cloning the repository, create a virtualenv environment, install
 the prerequisites, create and load initial data into the database, then
 run the testsite webapp.
 
-    $ virtualenv _installTop_
-    $ source _installTop_/bin/activate
+    $ python -m venv .venv
+    $ source .venv/bin/activate
     $ pip install -r testsite/requirements.txt
+
+    # Create the fixtures databases and run the server
     $ make initdb
     $ python manage.py runserver
-
 
 Release Notes
 =============
 
-0.1.25
+Tested with
 
- * search path for theme assets should be fully defined in settings.py
+- **Python:** 3.7, **Django:** 3.2 ([LTS](https://www.djangoproject.com/download/))
+- **Python:** 3.10, **Django:** 4.2 (latest)
+- **Python:** 2.7, **Django:** 1.11 (legacy) - use testsite/requirements-legacy.txt
+
+0.1.26
+
+ * returns URL as-is if location is an absolute URL already
 
 [previous release notes](changelog)
