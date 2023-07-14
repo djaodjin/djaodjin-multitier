@@ -73,6 +73,7 @@ def build_absolute_uri(request, location='/', site=None,
             subdomain = site.as_subdomain()
             is_path_prefix = site.is_path_prefix
             force_path_prefix = False
+            base_domain = settings.DEFAULT_DOMAIN
             if request:
                 base_domain = request.get_host()
                 if is_localhost(base_domain):
