@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Djaodjin Inc.
+# Copyright (c) 2023, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,10 @@ def get_site_model():
     """
     Returns the ``Site`` model that is active in this Django project.
     """
-    if hasattr(settings, 'MULTITIER_SITE_MODEL'):
+    site_model_name = getattr(settings, 'MULTITIER_SITE_MODEL')
+    if site_model_name:
         try:
-            return django_apps.get_model(settings.MULTITIER_SITE_MODEL)
+            return django_apps.get_model(site_model_name)
         except ValueError:
             raise ImproperlyConfigured("MULTITIER_SITE_MODEL must be "\
                 "of the form 'app_label.model_name'")

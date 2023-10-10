@@ -26,7 +26,7 @@
 Models for the multi-tier application.
 """
 
-import re, string
+import json, re, string
 
 from django.core.mail import get_connection as get_connection_base
 from django.core.validators import (_lazy_re_compile, RegexValidator,
@@ -102,7 +102,7 @@ class BaseSite(models.Model):
         related_name='sites')
     is_active = models.BooleanField(default=False,
         help_text=_("The Site is active or not"))
-    tag = models.CharField(null=True, max_length=255,
+    extra = models.CharField(null=True, max_length=255,
         help_text=_("Tags can be used by the project to filter sites"))
     base = models.ForeignKey('self',
         null=True, on_delete=models.CASCADE,
@@ -155,6 +155,8 @@ class BaseSite(models.Model):
 
     @property
     def printable_name(self):
+        if self.domain:
+            return self.domain
         return self.slug
 
     def get_templates(self):
@@ -172,20 +174,23 @@ class BaseSite(models.Model):
                     for theme in self.get_templates()]
 
     def add_tags(self, tags):
-        tags = [''] + tags # make a clone since we are going to be destructive.
-                           # also add the extra coma prefix needed later on.
-        if self.tag:
-            for tag in self.tag.split(','):
-                if tag in tags:
-                    tags = [rec for rec in tags if rec != tag]
-        else:
-            self.tag = ""
-        self.tag += ','.join(tags)
+        try:
+            extra = json.loads(self.extra)
+        except ValueError:
+            extra = {}
+        extra.update({
+            'tags': tags + [
+                tag for tag in extra.get('tags', []) if tag not in tags]})
+        self.extra = json.dumps(extra)
 
     def remove_tags(self, tags):
-        if self.tag:
-            self.tag = ','.join([
-                tag for tag in self.tag.split(',') if tag not in tags])
+        try:
+            extra = json.loads(self.extra)
+        except ValueError:
+            extra = {}
+        extra.update({
+            'tags': [tag for tag in extra.get('tags', []) if tag not in tags]})
+        self.extra = json.dumps(extra)
 
     @property
     def has_custom_connection(self):
