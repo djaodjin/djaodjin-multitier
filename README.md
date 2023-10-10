@@ -37,8 +37,11 @@ Tested with
 - **Python:** 3.10, **Django:** 4.2 (latest)
 - **Python:** 2.7, **Django:** 1.11 (legacy) - use testsite/requirements-legacy.txt
 
-0.1.26
+0.2.0
 
- * returns URL as-is if location is an absolute URL already
+ * replaces field `tag` by `extra` to match coding conventions
+ * returns `multitier.Site` when `settings.MULTITIER_SITE_MODEL is None`.
+
+ -- Sebastien Mirolo <smirolo@djaodjin.com>  Tue, 10 Oct 2023 14:00:00 -0700
 
 [previous release notes](changelog)
