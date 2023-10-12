@@ -37,8 +37,9 @@ Tested with
 - **Python:** 3.10, **Django:** 4.2 (latest)
 - **Python:** 2.7, **Django:** 1.11 (legacy) - use testsite/requirements-legacy.txt
 
-0.2.0
+0.2.1
 
+ * hotfix extra field can be None
  * replaces field `tag` by `extra` to match coding conventions
  * returns `multitier.Site` when `settings.MULTITIER_SITE_MODEL is None`.
 

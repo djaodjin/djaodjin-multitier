@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Djaodjin Inc.
+# Copyright (c) 2023, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -176,7 +176,7 @@ class BaseSite(models.Model):
     def add_tags(self, tags):
         try:
             extra = json.loads(self.extra)
-        except ValueError:
+        except (TypeError, ValueError):
             extra = {}
         extra.update({
             'tags': tags + [
@@ -186,7 +186,7 @@ class BaseSite(models.Model):
     def remove_tags(self, tags):
         try:
             extra = json.loads(self.extra)
-        except ValueError:
+        except (TypeError, ValueError):
             extra = {}
         extra.update({
             'tags': [tag for tag in extra.get('tags', []) if tag not in tags]})
