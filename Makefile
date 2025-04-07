@@ -80,6 +80,7 @@ $(DESTDIR)$(CONFIG_DIR)/gunicorn.conf: $(srcDir)/testsite/etc/gunicorn.conf
 
 
 initdb: clean-dbs
+	$(installDirs) $(dir $(DB_NAME))
 	cd $(srcDir) && $(MANAGE) migrate $(RUNSYNCDB) --noinput
 	cd $(srcDir) && $(MANAGE) loaddata testsite/fixtures/test_data.json
 	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite $(MANAGE) migrate --database example1 $(RUNSYNCDB) --noinput
