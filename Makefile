@@ -5,19 +5,20 @@
 srcDir        ?= $(realpath .)
 installTop    ?= $(VIRTUAL_ENV)
 binDir        ?= $(installTop)/bin
-CONFIG_DIR    ?= $(srcDir)
+CONFIG_DIR    ?= $(installTop)/etc/testsite
 # XXX CONFIG_DIR should really be $(installTop)/etc/testsite
 LOCALSTATEDIR ?= $(installTop)/var
+# because there is no site.conf
+RUN_DIR       ?= $(abspath $(srcDir))
 
 installDirs   ?= install -d
-installFiles  := install -p -m 644
+installFiles  ?= install -p -m 644
 NPM           ?= npm
 PYTHON        := $(binDir)/python
 PIP           := $(binDir)/pip
 TWINE         := $(binDir)/twine
 
 ASSETS_DIR    := $(srcDir)/htdocs/static
-RUN_DIR       ?= $(srcDir)
 DB_NAME       ?= $(RUN_DIR)/db.sqlite
 
 MANAGE        := TESTSITE_SETTINGS_LOCATION=$(CONFIG_DIR) RUN_DIR=$(RUN_DIR) $(PYTHON) manage.py
@@ -29,15 +30,12 @@ MANAGE        := TESTSITE_SETTINGS_LOCATION=$(CONFIG_DIR) RUN_DIR=$(RUN_DIR) $(P
 RUNSYNCDB     = $(if $(findstring --run-syncdb,$(shell cd $(srcDir) && $(MANAGE) migrate --help 2>/dev/null)),--run-syncdb,)
 
 
-install:: install-conf
+install::
 	cd $(srcDir) && $(PIP) install .
 
 
 install-conf:: $(DESTDIR)$(CONFIG_DIR)/credentials \
                 $(DESTDIR)$(CONFIG_DIR)/gunicorn.conf
-	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/db
-	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/run
-	$(installDirs) $(DESTDIR)$(LOCALSTATEDIR)/log/gunicorn
 
 
 dist::
@@ -69,7 +67,7 @@ $(DESTDIR)$(CONFIG_DIR)/credentials: $(srcDir)/testsite/etc/credentials.conf
 	@if [ ! -f $@ ] ; then \
 		sed \
 		-e "s,\%(SECRET_KEY)s,`$(PYTHON) -c 'import sys ; from random import choice ; sys.stdout.write("".join([choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^*-_=+") for i in range(50)]))'`," \
-		$< > $@ ; \
+			$< > $@ ; \
 	else \
 		echo "warning: We are keeping $@ intact but $< contains updates that might affect behavior of the testsite." ; \
 	fi
@@ -81,7 +79,7 @@ $(DESTDIR)$(CONFIG_DIR)/gunicorn.conf: $(srcDir)/testsite/etc/gunicorn.conf
 		-e 's,%(LOCALSTATEDIR)s,$(LOCALSTATEDIR),' $< > $@
 
 
-initdb: clean-dbs install-conf
+initdb: clean-dbs
 	cd $(srcDir) && $(MANAGE) migrate $(RUNSYNCDB) --noinput
 	cd $(srcDir) && $(MANAGE) loaddata testsite/fixtures/test_data.json
 	cd $(srcDir) && MULTITIER_DB_FILE=example1.sqlite $(MANAGE) migrate --database example1 $(RUNSYNCDB) --noinput
@@ -90,8 +88,8 @@ initdb: clean-dbs install-conf
 	cd $(srcDir) && MULTITIER_DB_FILE=example2.sqlite $(MANAGE) loaddata --database example2 testsite/fixtures/example2.json
 
 doc:
-	$(installDirs) docs
-	cd $(srcDir) && sphinx-build -b html ./docs $(PWD)/docs
+	$(installDirs) build/docs
+	cd $(srcDir) && sphinx-build -b html ./docs $(PWD)/build/docs
 
 
 .PHONY: all check dist doc install
