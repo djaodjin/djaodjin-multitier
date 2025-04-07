@@ -31,18 +31,16 @@ run the testsite webapp.
 Release Notes
 =============
 
+
 Tested with
 
-- **Python:** 3.7, **Django:** 3.2 ([LTS](https://www.djangoproject.com/download/))
-- **Python:** 3.10, **Django:** 4.2 (latest)
-- **Python:** 2.7, **Django:** 1.11 (legacy) - use testsite/requirements-legacy.txt
+- **Python:** 3.10, **Django:** 4.2 ([LTS](https://www.djangoproject.com/download/))
+- **Python:** 3.12, **Django:** 5.1 (next)
+- **Python:** 3.7, **Django:** 3.2 (legacy)
 
-0.2.1
+0.3.0
 
- * hotfix extra field can be None
- * replaces field `tag` by `extra` to match coding conventions
- * returns `multitier.Site` when `settings.MULTITIER_SITE_MODEL is None`.
-
- -- Sebastien Mirolo <smirolo@djaodjin.com>  Tue, 10 Oct 2023 14:00:00 -0700
+ * adds fields for workflow configuration settings
+ * swaps order of `location` and `request` parameters in `build_absolute_uri`
 
 [previous release notes](changelog)

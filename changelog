@@ -1,3 +1,10 @@
+0.3.0
+
+ * adds fields for workflow configuration settings
+ * swaps order of `location` and `request` parameters in `build_absolute_uri`
+
+ -- Sebastien Mirolo <smirolo@djaodjin.com>  Mon, 7 Apr 2025 13:40:00 -0700
+
 0.2.1
 
  * hotfix extra field can be None
