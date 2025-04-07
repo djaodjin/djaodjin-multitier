@@ -1,4 +1,4 @@
-# Copyright (c) 2021, DjaoDjin inc.
+# Copyright (c) 2025, DjaoDjin inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ This command sends a test e-mail for a site.
 import logging
 
 from django.core.management.base import BaseCommand
-from django.core.mail import get_connection, send_mail
+from django.core.mail import send_mail
 from multitier.utils import get_site_model
 
 

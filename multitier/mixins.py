@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Djaodjin Inc.
+# Copyright (c) 2025, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ def is_localhost(hostname):
         hostname.startswith('localhost') or hostname.startswith('127.0.0.1'))
 
 
-def build_absolute_uri(request, location='/', site=None,
+def build_absolute_uri(location='/', request=None, site=None,
                        with_scheme=True, force_subdomain=False):
     """
     Builds an absolute URL for path *location* on *site*.
@@ -137,7 +137,8 @@ class SiteMixin(AccountMixin):
 
     def get_actual_domain(self):
         return build_absolute_uri(
-            self.request, site=self.site, with_scheme=False)
+            request=self.request, site=self.site, with_scheme=False)
 
     def get_absolute_uri(self, location=''):
-        return build_absolute_uri(self.request, location, site=self.site)
+        return build_absolute_uri(location=location,
+            request=self.request, site=self.site)

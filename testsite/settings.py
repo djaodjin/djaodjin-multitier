@@ -7,7 +7,7 @@ https://docs.djangoproject.com/en/1.7/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
-import os, sys
+import os, re, sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -27,7 +27,6 @@ def load_config(confpath):
     '''
     # todo: consider using something like ConfigObj for this:
     # http://www.voidspace.org.uk/python/configobj.html
-    import re, sys
     if os.path.isfile(confpath):
         sys.stderr.write('config loaded from %s\n' % confpath)
         with open(confpath) as conffile:
@@ -38,16 +37,13 @@ def load_config(confpath):
                     if look:
                         value = look.group(2) \
                             % {'LOCALSTATEDIR': BASE_DIR + '/var'}
-                        try:
-                            # Once Django 1.5 introduced ALLOWED_HOSTS (a tuple
-                            # definitely in the site.conf set), we had no choice
-                            # other than using eval. The {} are here to restrict
-                            # the globals and locals context eval has access to.
-                            # pylint: disable=eval-used
-                            setattr(sys.modules[__name__],
-                                    look.group(1).upper(), eval(value, {}, {}))
-                        except Exception:
-                            raise
+                        # Once Django 1.5 introduced ALLOWED_HOSTS (a tuple
+                        # definitely in the site.conf set), we had no choice
+                        # other than using eval. The {} are here to restrict
+                        # the globals and locals context eval has access to.
+                        # pylint: disable=eval-used
+                        setattr(sys.modules[__name__],
+                                look.group(1).upper(), eval(value, {}, {}))
                 line = conffile.readline()
     else:
         sys.stderr.write('warning: config file %s does not exist.\n' % confpath)

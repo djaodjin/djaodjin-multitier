@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Djaodjin Inc.
+# Copyright (c) 2025, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,9 @@ from django.utils._os import safe_join
 from deployutils.crypt import decrypt, encrypt
 
 from . import settings
-from .compat import gettext_lazy as _, python_2_unicode_compatible, six
+from .compat import (gettext_lazy as _, import_string,
+    python_2_unicode_compatible, six)
+from .thread_locals import cache_provider_db
 from .utils import get_site_model
 
 
@@ -74,8 +76,30 @@ def domain_name_validator(value):
         )
 
 
+def _get_encrypted_field_class():
+    encrypted_class = settings.ENCRYPTED_FIELD
+    if encrypted_class is None:
+        encrypted_class = models.CharField
+    elif isinstance(encrypted_class, str):
+        encrypted_class = import_string(encrypted_class)
+    return encrypted_class
+
+
 @python_2_unicode_compatible
 class BaseSite(models.Model):
+
+    REGISTRATION_TYPE = (
+        (0, "User registration"),
+        (1, "Personal registration"),
+        (2, "User and organization registration"),
+        (3, "User registration wth implicit billing"),
+    )
+
+    AUTH_TYPE = (
+        (0, "enabled"),
+        (1, "login-only"),
+        (2, "disabled"),
+    )
 
     # Since most DNS provider limit subdomain length to 25 characters,
     # we do here too. `django.contrib.Site` limits the domain length
@@ -94,6 +118,8 @@ class BaseSite(models.Model):
             _("fully qualified domain name at which the site is available")))
     is_path_prefix = models.BooleanField(default=False, help_text=_(
         "use slug as a prefix for URL paths instead of domain field."))
+    cors_restricted = models.BooleanField(default=True,
+        help_text=_("Set CORS headers on HTTP responses"))
     cert_location = models.CharField(max_length=1024, null=True,
         help_text=_("Location of the TLS certificate for HTTPS connections"))
 
@@ -104,11 +130,9 @@ class BaseSite(models.Model):
         help_text=_("The Site is active or not"))
     extra = models.CharField(null=True, max_length=255,
         help_text=_("Tags can be used by the project to filter sites"))
-    base = models.ForeignKey('self',
-        null=True, on_delete=models.CASCADE,
-        help_text=_("The site is a derivative of this parent."))
 
     # Database connection
+    # -------------------
     db_name = models.SlugField(max_length=255, null=True,
         help_text=_("name of database to connect to for the site"))
     db_host = models.CharField(max_length=255, null=True, blank=True,
@@ -118,11 +142,12 @@ class BaseSite(models.Model):
         help_text=_("port to connect to the database host"))
     db_host_user = models.CharField(max_length=128, null=True, blank=True,
         help_text=_("username authorized to connect to the database"))
-    db_host_password = models.CharField(_('Password'), max_length=128,
-        null=True, blank=True,
+    db_host_password = _get_encrypted_field_class()(
+        max_length=255, null=True, blank=True,
         help_text=_("password to authenticate user connecting to the database"))
 
     # SMTP connection
+    # ---------------
     email_default_from = models.EmailField(null=True, blank=True)
     email_host = models.CharField(max_length=255, null=True, blank=True,
         validators=[HOST_VALIDATOR],
@@ -135,20 +160,77 @@ class BaseSite(models.Model):
         null=True, blank=True,
         help_text=_("password to authenticate the user with the SMTP server"))
 
+    # User and profile accounts settings
+    # ----------------------------------
+    authentication = models.PositiveSmallIntegerField(
+        choices=AUTH_TYPE, default=0)
+    registration = models.PositiveSmallIntegerField(
+        choices=REGISTRATION_TYPE, default=0)
+
+    registration_requires_recaptcha = models.BooleanField(
+        null=True, default=False)
+    contact_requires_recaptcha = models.BooleanField(null=True, default=False)
+    recaptcha_pub_key = models.SlugField(
+        max_length=255, null=True, blank=True)
+    recaptcha_priv_key = _get_encrypted_field_class()(
+        max_length=255, null=True, blank=True)
+
+    social_auth_azuread_pub_key = models.SlugField(
+        max_length=255, null=True, blank=True)
+    social_auth_azuread_priv_key = _get_encrypted_field_class()(
+        max_length=255, null=True, blank=True)
+    social_auth_github_pub_key = models.SlugField(
+        max_length=255, null=True, blank=True)
+    social_auth_github_priv_key = _get_encrypted_field_class()(
+        max_length=255, null=True, blank=True)
+    social_auth_google_pub_key = models.SlugField(
+        max_length=255, null=True, blank=True)
+    social_auth_google_priv_key = _get_encrypted_field_class()(
+        max_length=255, null=True, blank=True)
+
+    # street address auto-complete (Google Places)
+    # --------------------------------------------
+    google_api_key = _get_encrypted_field_class()(
+        max_length=255, null=True, blank=True)
+
+    # Payment processor settings
+    # --------------------------
+    processor_is_platform = models.BooleanField(default=False,
+        help_text=_("Processor keys should be treated as platform keys"))
+
+    processor_pub_key = models.SlugField(
+        max_length=255, null=True, blank=True)
+    processor_priv_key = _get_encrypted_field_class()(
+        max_length=255, null=True, blank=True)
+    processor_client_key = models.SlugField(
+        max_length=255, null=True, blank=True)
+    connect_callback_url = models.URLField(max_length=255, null=True,
+        help_text=_("URL to redirect to after processor account is connected"))
+
+    enables_processor_test_keys = models.BooleanField(default=False,
+        help_text=_("Enable processor test keys"))
+    processor_test_pub_key = models.SlugField(
+        max_length=255, null=True, blank=True)
+    processor_test_priv_key = _get_encrypted_field_class()(
+        max_length=255, null=True, blank=True)
+    processor_test_client_key = models.SlugField(
+        max_length=255, null=True, blank=True)
+    connect_test_callback_url = models.URLField(max_length=255, null=True,
+        help_text=_("URL to redirect to after processor account is connected"))
+
+    # Notification workflow settings
+    # ------------------------------
+    notification_webhook_url = models.URLField(null=True,
+        help_text=_("URL to post notifications to"))
+    notification_email_disabled = models.BooleanField(default=False,
+        help_text=_("True when e-mail notifications are disabled site-wide"))
+
     class Meta:
         swappable = 'MULTITIER_SITE_MODEL'
         abstract = True
 
     def __str__(self):
         return str(self.slug)
-
-    def as_base(self):
-        """
-        Returns either the base site or ``self`` if no base exists.
-        """
-        if self.base_id:
-            return self.base
-        return self
 
     def as_subdomain(self):
         return self.slug if self.slug != settings.DEFAULT_SITE else ""
@@ -191,6 +273,24 @@ class BaseSite(models.Model):
         extra.update({
             'tags': [tag for tag in extra.get('tags', []) if tag not in tags]})
         self.extra = json.dumps(extra)
+
+
+    def db_connect(self):
+        """
+        Name of the database associated to a *site*
+        (of type ``get_site_model``).
+        """
+        site = self
+        db_name = site.db_name
+        db_host = site.db_host
+        db_port = site.db_port
+        if not db_name:
+            db_name = site.slug
+        cache_provider_db(db_name, db_host=db_host, db_port=db_port)
+        return db_name
+
+    def db_custom(self):
+        return bool(self.db_host_user)
 
     @property
     def has_custom_connection(self):

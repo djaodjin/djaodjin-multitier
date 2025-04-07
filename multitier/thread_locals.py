@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Djaodjin Inc.
+# Copyright (c) 2025, Djaodjin Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -141,6 +141,196 @@ def get_path_prefix():
     if site:
         return site.path_prefix
     return ""
+
+# SMTP connection
+# ---------------
+def get_email_connection(site=None):
+    """
+    Returns a connection to the e-mail server for the site.
+    """
+    if not site:
+        site = get_current_site()
+    return site.get_email_connection()
+
+
+def get_default_from_email():
+    site = get_current_site()
+    email_default_from = site.email_default_from
+    if email_default_from:
+        return email_default_from
+    email_host_user = site.email_host_user
+    if email_host_user and '@' in email_host_user:
+        return email_host_user
+    return ""
+
+# User and profile accounts settings
+# ----------------------------------
+def get_authentication_override():
+    """
+    Returns the authentication settings for the current site.
+    """
+    return get_current_site().authentication
+
+
+def get_registration_type():
+    """
+    Returns the registration settings for the current site.
+    """
+    return get_current_site().registration
+
+
+def get_registration_requires_recaptcha():
+    return get_current_site().registration_requires_recaptcha
+
+
+def get_contact_requires_recaptcha():
+    return get_current_site().contact_requires_recaptcha
+
+
+def get_recaptcha_pub_key():
+    value = get_current_site().recaptcha_pub_key
+    if not value:
+        return ""
+    return value
+
+
+def get_recaptcha_priv_key():
+    value = get_current_site().recaptcha_priv_key
+    if not value:
+        return ""
+    return value
+
+
+def get_social_auth_azuread_oauth2_key():
+    value = get_current_site().social_auth_azuread_pub_key
+    if not value:
+        return ""
+    return value
+
+
+def get_social_auth_azuread_oauth2_secret():
+    value = get_current_site().social_auth_azuread_priv_key
+    if not value:
+        return ""
+    return value
+
+
+def get_social_auth_github_key():
+    value = get_current_site().social_auth_github_pub_key
+    if not value:
+        return ""
+    return value
+
+
+def get_social_auth_github_secret():
+    value = get_current_site().social_auth_github_priv_key
+    if not value:
+        return ""
+    return value
+
+
+def get_social_auth_google_oauth2_key():
+    value = get_current_site().social_auth_google_pub_key
+    if not value:
+        return ""
+    return value
+
+
+def get_social_auth_google_oauth2_secret():
+    value = get_current_site().social_auth_google_priv_key
+    if not value:
+        return ""
+    return value
+
+# street address auto-complete (Google Places)
+# --------------------------------------------
+def get_google_api_key():
+    value = get_current_site().google_api_key
+    if not value:
+        return ""
+    return value
+
+
+# Payment processor
+# -----------------
+def get_processor_use_platform_keys():
+    return get_current_site().processor_is_platform
+
+
+def get_processor_pub_key():
+    value = get_current_site().processor_pub_key
+    if not value:
+        return ""
+    return value
+
+
+def get_processor_priv_key():
+    value = get_current_site().processor_priv_key
+    if not value:
+        return ""
+    return value
+
+
+def get_processor_client_id():
+    value = get_current_site().processor_client_key
+    if not value:
+        return ""
+    return value
+
+
+def get_processor_connect_callback_url():
+    value = get_current_site().connect_callback_url
+    if not value:
+        return ""
+    return value
+
+
+def get_enables_processor_test_keys():
+    return get_current_site().enables_processor_test_keys
+
+
+def get_processor_test_pub_key():
+    value = get_current_site().processor_test_pub_key
+    if not value:
+        return ""
+    return value
+
+
+def get_processor_test_priv_key():
+    value = get_current_site().processor_test_priv_key
+    if not value:
+        return ""
+    return value
+
+
+def get_processor_test_client_id():
+    value = get_current_site().processor_test_client_key
+    if not value:
+        return ""
+    return value
+
+
+def get_processor_test_connect_callback_url():
+    value = get_current_site().connect_test_callback_url
+    if not value:
+        return ""
+    return value
+
+
+# Notification workflow settings
+# ------------------------------
+def get_notification_webhook_url():
+    notification_webhook_url = get_current_site().notification_webhook_url
+    if not notification_webhook_url:
+        return ""
+    return notification_webhook_url
+
+
+def get_notification_email_disabled():
+    notification_email_disabled = get_current_site().notification_email_disabled
+    # `settings_lazy` is expecting a string
+    #XXX return "1" if notification_email_disabled else ""
+    return notification_email_disabled
 
 
 def set_current_site(site, path_prefix,

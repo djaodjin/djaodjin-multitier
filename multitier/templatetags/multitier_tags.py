@@ -1,4 +1,4 @@
-# Copyright (c) 2022, DjaoDjin inc.
+# Copyright (c) 2025, DjaoDjin inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -99,4 +99,4 @@ def site_url(request):
             path_prefix += '/'
             path = path.lstrip('/')
         return urljoin(path_prefix, path)
-    return build_absolute_uri(request).rstrip('/')
+    return build_absolute_uri(request=request).rstrip('/')
