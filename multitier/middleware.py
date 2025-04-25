@@ -81,7 +81,11 @@ class SiteMiddleware(MiddlewareMixin):
                 flt = flt | Q(slug=settings.DEFAULT_SITE)
             queryset = get_site_model().objects.filter(
                 flt, is_active=True).order_by('-domain', '-pk')
-            site = queryset.first()
+            site = queryset.defer(
+                'db_host_password', 'recaptcha_priv_key',
+                'social_auth_azuread_priv_key', 'social_auth_github_priv_key',
+                'social_auth_google_priv_key', 'google_api_key',
+                'processor_priv_key', 'processor_test_priv_key').first()
             if site is None or (site.domain and site.domain != host):
                 # We return a 404 if the site is accessed through
                 # the default domain when a domain is present because
