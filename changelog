@@ -1,3 +1,9 @@
+0.3.1
+
+ * loads site even when some encrypted database fields cannot be decrypted
+
+ -- Sebastien Mirolo <smirolo@djaodjin.com>  Fri, 25 Apr 2025 11:35:00 -0700
+
 0.3.0
 
  * adds fields for workflow configuration settings

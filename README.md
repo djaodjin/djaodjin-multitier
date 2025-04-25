@@ -38,8 +38,9 @@ Tested with
 - **Python:** 3.12, **Django:** 5.1 (next)
 - **Python:** 3.7, **Django:** 3.2 (legacy)
 
-0.3.0
+0.3.1
 
+ * loads site even when some encrypted database fields cannot be decrypted
  * adds fields for workflow configuration settings
  * swaps order of `location` and `request` parameters in `build_absolute_uri`
 
