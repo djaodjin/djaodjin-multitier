@@ -1,10 +1,13 @@
-Django==3.2.25
-djaodjin-deployutils==0.11.0
+Django==3.2.25   ; python_version < "3.9"
+Django==4.2.30   ; python_version >= "3.9" and python_version < "3.12"
+Django==5.2.14   ; python_version >= "3.12" and python_version < "3.14"
+Django==6.0.4    ; python_version >= "3.14"
+djaodjin-deployutils==0.14.5
 
 # testsite-only
-coverage==6.3.2
+coverage==6.4.4
 django-debug-toolbar==3.5.0       # 3.4.0 requires Django>=3.2
                                   # 3.2.4 fails with SQLPanel is not scriptable
                                   # 2.2.1 is the last version for Django2.2
-django-extensions==3.2.0          # 3.2.0 compatibles with Django==4.0
-gunicorn==20.0.4
+django-extensions==3.2.3          # 3.2.0 compatibles with Django==4.0
+gunicorn==23.0.0

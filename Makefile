@@ -44,6 +44,10 @@ dist::
 	$(TWINE) upload dist/*
 
 
+package-theme:
+	@echo "dummy target 'package-theme' for continuous testing workflow"
+
+
 build-assets: vendor-assets-prerequisites
 
 
